@@ -54,12 +54,15 @@ RULESET:
 CUSTOM_PROXY_GROUP:
 - name: ♻️ 自动选择
   type: url-test
+  regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
   rule: false
 - name: 🔯 故障转移
   type: fallback
+  regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
   rule: false
 - name: 🎯 全球直连
   type: select
   prior: DIRECT
 - name: 🐟 漏网之鱼
   type: select
+  prior: PROXY
