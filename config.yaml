@@ -49,7 +49,7 @@ RULESET:
   - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/Download.list
 - - DIRECT
   - '[]GEOIP,CN'
-- - 🐟 漏网之鱼
+- - PROXY
   - '[]FINAL'
 CUSTOM_PROXY_GROUP:
 - name: ♻️ 自动选择
@@ -60,10 +60,7 @@ CUSTOM_PROXY_GROUP:
   type: select
   manual: true
   rule: false
-- name: 🔯 故障转移
+- name: ☁️ 故障转移
   type: fallback
   regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
   rule: false
-- name: 🐟 漏网之鱼
-  type: select
-  prior: PROXY
