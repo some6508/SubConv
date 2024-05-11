@@ -49,7 +49,7 @@ RULESET:
   - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/Download.list
 - - DIRECT
   - '[]GEOIP,CN'
-- - PROXY
+- - 🚀 节点选择
   - '[]FINAL'
 CUSTOM_PROXY_GROUP:
 - name: ♻️ 自动选择
