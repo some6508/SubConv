@@ -34,33 +34,51 @@ HEAD:
     - +.microsoft*.com
     - localhost.ptlogin2.qq.com
 TEST_URL: https://www.gstatic.com/generate_204
+
 RULESET:
-- - DIRECT
-  - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/LocalAreaNetwork.list
-- - DIRECT
-  - https://github.com/some6508/run/raw/master/Lan.list
+- - 🎯 直连访问
+  - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/LocalAreaNetwork.list
+- - 🎯 直连访问
+  - https://raw.githubusercontent.com/some6508/run/master/Lan.list
 - - 🚀 节点选择
-  - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/ProxyLite.list
+  - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyLite.list
 - - 🚀 节点选择
-  - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/ProxyGFWlist.list
-- - DIRECT
-  - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/ChinaDomain.list
-- - DIRECT
-  - https://github.com/ACL4SSR/ACL4SSR/raw/master/Clash/Download.list
-- - DIRECT
+  - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyGFWlist.list
+- - 🎯 直连访问
+  - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list
+- - 🎯 直连访问
+  - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Download.list
+- - 🎯 直连访问
   - '[]GEOIP,CN'
-- - 🚀 节点选择
+- - 🐟 漏网之鱼
   - '[]FINAL'
+
 CUSTOM_PROXY_GROUP:
+
 - name: ♻️ 自动选择
   type: url-test
   regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
   rule: false
+
 - name: 🚀 手动切换
   type: select
   manual: true
   rule: false
+
+- name: 🔮 负载均衡
+  type: load-balance
+  regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
+  rule: false
+
 - name: ☁️ 故障转移
   type: fallback
   regex: (^(?!.*((?i)刷新|工单|机场|网|剩余|关注|复制|注意|移动|更新|广告|中国|www|CN|省|http|倍|计费|刷新|x|用户|com)).*$)
   rule: false
+
+- name: 🎯 直连访问
+  type: select
+  prior: DIRECT
+
+- name: 🐟 漏网之鱼
+  type: select
+  prior: PROXY
