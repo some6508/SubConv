@@ -41,6 +41,8 @@ RULESET:
 - - 🎯 直连访问
   - https://raw.githubusercontent.com/some6508/run/master/Lan.list
 - - 🚀 节点选择
+  - https://raw.githubusercontent.com/some6508/run/master/Proxy.list
+- - 🚀 节点选择
   - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyLite.list
 - - 🚀 节点选择
   - https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyGFWlist.list
