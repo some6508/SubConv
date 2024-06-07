@@ -313,9 +313,9 @@ async def pack(url: list, urlstandalone: list, urlstandby:list, urlstandbystanda
     rules = {
         "rules": []
     }
-    rules["rules"].append(
-        f"DOMAIN,{domain},DIRECT"
-    )
+    # rules["rules"].append(
+        # f"DOMAIN,{domain},DIRECT"
+    # )
     for k, v in rule_map.items():
         if not k.startswith("[]"):
             rules["rules"].append(
