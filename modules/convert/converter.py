@@ -331,7 +331,7 @@ async def ConvertsV2Ray(buf):
                     httpOpts = {}
                     host = get(values.get("host"))
                     if host != "":
-                        headers["host"] = host
+                        headers["Host"] = host
                     httpOpts["path"] = "/"
                     path = get(values.get("path"))
                     if path != "":
@@ -345,7 +345,7 @@ async def ConvertsV2Ray(buf):
                     h2Opts = {}
                     host = get(values.get("host"))
                     if host != "":
-                        headers["host"] = host
+                        headers["Host"] = host
                     h2Opts["path"] = get(values.get("path"))
                     h2Opts["headers"] = headers
 
@@ -357,7 +357,7 @@ async def ConvertsV2Ray(buf):
                     wsOpts["path"] = "/"
                     host = get(values.get("host"))
                     if host != "":
-                        headers["host"] = host
+                        headers["Host"] = host
                     path = get(values.get("path"))
                     if path != "":
                         wsOpts["path"] = path
