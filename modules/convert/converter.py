@@ -182,17 +182,10 @@ async def ConvertsV2Ray(buf):
                 trojan["type"] = scheme
                 trojan["server"] = urlTrojan.hostname
                 trojan["port"] = urlTrojan.port
-                if hasattr(urlTrojan, 'password'):
-                    trojan["password"] = urlTrojan.password
-                else:
-                    trojan["password"] = ""
+                trojan["password"] = urlTrojan.password if urlTrojan.password is not None else ''
                 trojan["udp"] = True
-                if query.get("allowInsecure"):
-                    trojan["skip-cert-verify"] = bool(
-                        distutils.util.strtobool(query.get("allowInsecure")))
-                else:
-                    trojan["skip-cert-verify"] = False
-
+                trojan["skip-cert-verify"] = bool(
+                    distutils.util.strtobool(query.get("allowInsecure", "false")))
                 sni = get(query.get("sni"))
                 if sni != "":
                     trojan["sni"] = sni
