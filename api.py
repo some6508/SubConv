@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # coding=utf-8
-import requests
-from fastapi import FastAPI, HTTPException
-from fastapi.requests import Request
-from fastapi.responses import FileResponse, Response, StreamingResponse
-from fastapi.staticfiles import StaticFiles
-import uvicorn
-
-import httpx
-
-import yaml
-
-from urllib.parse import urlencode, unquote
-import argparse
-from pathlib import Path
 import re
 import os
+import httpx
+import yaml
+import uvicorn
+import requests
+import argparse
+from pathlib import Path
+from fastapi.requests import Request
+from fastapi.staticfiles import StaticFiles
+from urllib.parse import urlencode, unquote
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, Response, StreamingResponse
+
+
+print("============================================================")
 
 DISALLOW_ROBOTS = bool(eval(os.environ.get("DISALLOW_ROBOTS", "False")))
 
@@ -104,7 +104,7 @@ async def provider(request: Request):
 	url = request.query_params.get("url")
 	async with httpx.AsyncClient() as client:
 		resp = await client.get(url, headers={'User-Agent': 'clash'})
-		resp.status_code != 200:
+		if resp.status_code != 200:
 			resp = requests.get(url, headers={'User-Agent': 'clash'})
 		if resp.status_code < 200 or resp.status_code >= 400:
 			raise HTTPException(status_code=resp.status_code, detail=resp.text)
