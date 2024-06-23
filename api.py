@@ -104,7 +104,7 @@ async def provider(request: Request):
 	url = request.query_params.get("url")
 	async with httpx.AsyncClient() as client:
 		resp = await client.get(url, headers={'User-Agent': 'clash'})
-		if not resp.text:
+		resp.status_code != 200:
 			resp = requests.get(url, headers={'User-Agent': 'clash'})
 		if resp.status_code < 200 or resp.status_code >= 400:
 			raise HTTPException(status_code=resp.status_code, detail=resp.text)
@@ -174,7 +174,7 @@ async def sub(request: Request):
 		# if there's only one subscription, return userinfo
 		if length(url) == 1:
 			resp = await client.head(url[0], headers={'User-Agent': 'clash'})
-			if not resp.text:
+			if resp.status_code != 200:
 				resp = requests.get(url[0], headers={'User-Agent': 'clash'})
 			if resp.status_code < 200 or resp.status_code >= 400:
 				raise HTTPException(status_code=resp.status_code, detail=resp.text)
@@ -196,7 +196,7 @@ async def sub(request: Request):
 				# the test of response
 				respText = (await client.get(url[i], headers={'User-Agent': 'clash'})).text
 				if not respText:
-					respText = (requests.get(url[0], headers={'User-Agent': 'clash'})).text
+					respText = (requests.get(url[i], headers={'User-Agent': 'clash'})).text
 				content.append(await parse.parseSubs(respText))
 				url[i] = "{}provider?{}".format(request.base_url, urlencode({"url": url[i]}))
 	if len(content) == 0:
