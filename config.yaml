@@ -59,7 +59,7 @@ CUSTOM_PROXY_GROUP:
 
 - name: ♻️ 自动选择
   type: url-test
-  regex: (^(?!.*((?i)倍|计费|x|X)).*$)
+  regex: ^(?!.*[倍计费]).*$
   rule: false
 
 - name: 🚀 手动切换
@@ -69,12 +69,12 @@ CUSTOM_PROXY_GROUP:
 
 - name: 🔮 负载均衡
   type: load-balance
-  regex: (^(?!.*((?i)倍|计费|x|X)).*$)
+  regex: ^(?!.*[倍计费]).*$
   rule: false
 
 - name: ☁️ 故障转移
   type: fallback
-  regex: (^(?!.*((?i)倍|计费|x|X)).*$)
+  regex: ^(?!.*[倍计费]).*$
   rule: false
 
 - name: 🎯 直连访问
