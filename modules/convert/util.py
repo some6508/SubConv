@@ -3,7 +3,7 @@ import base64
 
 
 userAgents = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36",
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36",
 	"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36",
 	"Mozilla/5.0 (Linux; Android 7.0; Moto C Build/NRD90M.059) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36",
 	"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
@@ -256,7 +256,7 @@ userAgents = [
 ]
 
 def RandUserAgent() -> str:
-    return userAgents[random.randint(0, len(userAgents) - 1)]
+	return userAgents[random.randint(0, len(userAgents) - 1)]
 
 def uniqueName(names: dict, name):
 	index = names.get(name)
@@ -273,17 +273,17 @@ def urlSafe(string):
 	return string.replace("+", "-").replace("/", "_")
 
 def get(content):
-    if content is None:
-        return ""
-    else:
-        return content
+	if content is None:
+		return ""
+	else:
+		return content
 
 def base64RawStdDecode(encoded):
 	return base64.b64decode(
-              encoded + "="*(-len(encoded)%4)
+		encoded + "="*(-len(encoded)%4)
 	).decode("utf-8")
 
 def base64RawURLDecode(encoded):
 	return base64.urlsafe_b64decode(
-			  encoded + "="*(-len(encoded)%4)
+		encoded + "="*(-len(encoded)%4)
 	).decode("utf-8")
