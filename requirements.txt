@@ -1,6 +1,6 @@
-fastapi==0.110.1
 httpx==0.27.0
-PyYAML==6.0.1
-uvicorn==0.29.0
-pydantic-settings-yaml==0.2.0
+fastapi==0.111.0
+PyYAML==6.0.2rc1
+uvicorn==0.30.1
 requests==2.32.3
+pydantic-settings-yaml==0.2.0
