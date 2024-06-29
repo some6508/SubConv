@@ -2,6 +2,7 @@
 import json
 import base64
 import distutils.util
+import threading
 import urllib.parse as urlparse
 from modules.convert.util import get
 from modules.convert.util import urlSafe
@@ -27,12 +28,12 @@ async def ConvertsV2Ray(buf):
 	proxies = []
 	names = {}
 
-	for line in arr:
+	def data_line(line):
 		if line == "":
-			continue
+			return
 
 		if -1 == line.find("://"):
-			continue
+			return
 		else:
 			scheme, body = line.split("://", 1)
 
@@ -42,7 +43,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlHysteria = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlHysteria.query))
 				name = uniqueName(names, urlparse.unquote(urlHysteria.fragment))
@@ -72,7 +73,7 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(hysteria)
 			except:
-				continue
+				return
 
 		elif scheme == "hysteria2" or scheme == "hy2":
 			try:
@@ -80,7 +81,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlHysteria2 = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlHysteria2.query))
 				name = uniqueName(names, urlparse.unquote(urlHysteria2.fragment))
@@ -117,7 +118,7 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(hysteria2)
 			except:
-				continue
+				return
 
 		elif scheme == "tuic":
 			try:
@@ -129,7 +130,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlTUIC = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlTUIC.query))
 
@@ -162,14 +163,14 @@ async def ConvertsV2Ray(buf):
 					tuic["udp-relay-mode"] = udpRelayMode
 				proxies.append(tuic)
 			except:
-				continue
+				return
 
 		elif scheme == "trojan":
 			try:
 				try:
 					urlTrojan = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlTrojan.query))
 
@@ -221,27 +222,27 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(trojan)
 			except:
-				continue
+				return
 
 		elif scheme == "vless":
 			try:
 				try:
 					urlVless = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlVless.query))
 				vless = {}
 				try:
 					handleVShareLink(names, urlVless, scheme, vless)
 				except:
-					continue
+					return
 				flow = get(query.get("flow"))
 				if flow != "":
 					vless["flow"] = str(flow).lower()
 				proxies.append(vless)
 			except:
-				continue
+				return
 
 		elif scheme == "vmess":
 			try:
@@ -252,31 +253,31 @@ async def ConvertsV2Ray(buf):
 					try:
 						urlVMess = urlparse.urlparse(line)
 					except:
-						continue
+						return
 					query = dict(urlparse.parse_qsl(urlVMess.query))
 					vmess = {}
 					try:
 						handleVShareLink(names, urlVMess, scheme, vmess)
 					except:
-						continue
+						return
 					vmess["alterId"] = 0
 					vmess["cipher"] = "auto"
 					encryption = get(query.get("encryption"))
 					if encryption != "":
 						vmess["cipher"] = encryption
 					proxies.append(vmess)
-					continue
+					return
 
 				values = {}
 				try:
 					values = json.loads(dcBuf)
 				except:
-					continue
+					return
 
 				try:
 					tempName = values["ps"]
 				except:
-					continue
+					return
 				name = uniqueName(names, tempName)
 				vmess = {}
 
@@ -365,7 +366,7 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(vmess)
 			except:
-				continue
+				return
 
 		# ss and ssr still WIP
 		elif scheme == "ss":
@@ -373,7 +374,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlSS = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				name = uniqueName(names, urlparse.unquote(urlSS.fragment))
 				port = urlSS.port
@@ -382,12 +383,12 @@ async def ConvertsV2Ray(buf):
 					try:
 						dcBuf = base64RawStdDecode(urlSS.hostname)
 					except:
-						continue
+						return
 
 					try:
 						urlSS = urlparse.urlparse("ss://"+dcBuf)
 					except:
-						continue
+						return
 
 				# there may be bugs
 				cipherRaw = urlSS.username
@@ -400,11 +401,11 @@ async def ConvertsV2Ray(buf):
 						try:
 							dcBuf = base64RawURLDecode(cipherRaw)
 						except:
-							continue
+							return
 					try:
 						cipher, password = dcBuf.split(":", 1)
 					except:
-						continue
+						return
 				# ther may be bugs
 
 				ss = {}
@@ -428,24 +429,24 @@ async def ConvertsV2Ray(buf):
 					}
 				proxies.append(ss)
 			except:
-				continue
+				return
 
 		elif scheme == "ssr":
 			try:
 				try:
 					dcBuf = base64RawStdDecode(body)
 				except:
-					continue
+					return
 
 				try:
 					before, after = dcBuf.split("/?", 1)
 				except:
-					continue
+					return
 
 				beforeArr = before.split(":")
 
 				if len(beforeArr) < 6:
-					continue
+					return
 
 				host = beforeArr[0]
 				port = beforeArr[1]
@@ -457,7 +458,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					query = dict(urlparse.parse_qsl(urlSafe(after)))
 				except:
-					continue
+					return
 
 				remarks = base64RawURLDecode(query.get("remarks"))
 				name = uniqueName(names, remarks)
@@ -484,14 +485,14 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(ssr)
 			except:
-				continue
+				return
 
 		elif scheme == "tg":
 			try:
 				try:
 					urlTG = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlTG.query))
 
@@ -514,19 +515,19 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(tg)
 			except:
-				continue
+				return
 
 		elif scheme == "https":
 			try:
 				try:
 					urlHTTPS = urlparse.urlparse(line)
 				except:
-					continue
+					return
 
 				query = dict(urlparse.parse_qsl(urlHTTPS.query))
 
 				if not urlHTTPS.hostname.startswith("t.me"):
-					continue
+					return
 
 				tg = {}
 
@@ -548,7 +549,17 @@ async def ConvertsV2Ray(buf):
 
 				proxies.append(tg)
 			except:
-				continue
+				return
+
+
+	threads = []
+	for line in arr:
+		t = threading.Thread(target=data_line, args=(line,))
+		threads.append(t)
+		t.start()
+
+	for t in threads:
+		t.join()
 
 	if len(proxies) == 0:
 		raise Exception("No valid proxies found")
