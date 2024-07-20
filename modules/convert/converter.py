@@ -28,6 +28,14 @@ async def ConvertsV2Ray(buf):
 	proxies = []
 	names = {}
 
+
+	def exists_proxies(proxies, server_port):
+		for proxy in proxies:
+			if proxy["server"] == server_port["server"] and proxy["port"] == server_port["port"]:
+				return False
+		return True
+
+
 	def data_line(line):
 		if line == "":
 			return
@@ -71,7 +79,8 @@ async def ConvertsV2Ray(buf):
 				hysteria["skip-cert-verify"] = bool(
 					distutils.util.strtobool(query.get("insecure")))
 
-				proxies.append(hysteria)
+				if exists_proxies(proxies, hysteria):
+					proxies.append(hysteria)
 			except:
 				return
 
@@ -116,7 +125,8 @@ async def ConvertsV2Ray(buf):
 				hysteria2["down"] = get(query.get("down"))
 				hysteria2["up"] = get(query.get("up"))
 
-				proxies.append(hysteria2)
+				if exists_proxies(proxies, hysteria2):
+					proxies.append(hysteria2)
 			except:
 				return
 
@@ -161,7 +171,9 @@ async def ConvertsV2Ray(buf):
 				udpRelayMode = get(query.get("udp_relay_mode"))
 				if udpRelayMode != "":
 					tuic["udp-relay-mode"] = udpRelayMode
-				proxies.append(tuic)
+
+				if exists_proxies(proxies, tuic):
+					proxies.append(tuic)
 			except:
 				return
 
@@ -220,7 +232,8 @@ async def ConvertsV2Ray(buf):
 				else:
 					trojan["client-fingerprint"] = fingerprint
 
-				proxies.append(trojan)
+				if exists_proxies(proxies, trojan):
+					proxies.append(trojan)
 			except:
 				return
 
@@ -240,7 +253,9 @@ async def ConvertsV2Ray(buf):
 				flow = get(query.get("flow"))
 				if flow != "":
 					vless["flow"] = str(flow).lower()
-				proxies.append(vless)
+
+				if exists_proxies(proxies, vless):
+					proxies.append(vless)
 			except:
 				return
 
@@ -265,7 +280,9 @@ async def ConvertsV2Ray(buf):
 					encryption = get(query.get("encryption"))
 					if encryption != "":
 						vmess["cipher"] = encryption
-					proxies.append(vmess)
+
+					if exists_proxies(proxies, vmess):
+						proxies.append(vmess)
 					return
 
 				values = {}
@@ -364,7 +381,8 @@ async def ConvertsV2Ray(buf):
 					grpcOpts["grpc-service-name"] = get(values.get("path"))
 					vmess["grpc-opts"] = grpcOpts
 
-				proxies.append(vmess)
+				if exists_proxies(proxies, vmess):
+					proxies.append(vmess)
 			except:
 				return
 
@@ -427,7 +445,9 @@ async def ConvertsV2Ray(buf):
 						"host": obfsParam[2][10:],
 						"mode": obfsParam[1][5:],
 					}
-				proxies.append(ss)
+
+				if exists_proxies(proxies, ss):
+					proxies.append(ss)
 			except:
 				return
 
@@ -483,7 +503,8 @@ async def ConvertsV2Ray(buf):
 				if protocolParam != "":
 					ssr["protocol-param"] = protocolParam
 
-				proxies.append(ssr)
+				if exists_proxies(proxies, ssr):
+					proxies.append(ssr)
 			except:
 				return
 
@@ -513,7 +534,8 @@ async def ConvertsV2Ray(buf):
 				if password != "":
 					tg["password"] = password
 
-				proxies.append(tg)
+				if exists_proxies(proxies, tg):
+					proxies.append(tg)
 			except:
 				return
 
@@ -547,10 +569,10 @@ async def ConvertsV2Ray(buf):
 				if password != "":
 					tg["passwork"] = password
 
-				proxies.append(tg)
+				if exists_proxies(proxies, tg):
+					proxies.append(tg)
 			except:
 				return
-
 
 	threads = []
 	for line in arr:
