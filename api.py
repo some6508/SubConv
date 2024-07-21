@@ -127,8 +127,12 @@ async def sub(request: Request):
 	base_url = str(request.base_url)
 	if "127.0.0.1" in base_url:
 		forwarded_host = request.headers.get("X-Forwarded-Host")
+		_host2 = request.headers.get("X-Host").split(":")[0]
+		print("内容：", _host2)
 		if forwarded_host:
 			base_url = f"http://{forwarded_host}/"
+		elif _host2:
+			base_url = f"http://{_host2}/"
 
 	# get proxyrule
 	notproxyrule = args.get("npr")
