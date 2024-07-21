@@ -1,8 +1,9 @@
 
 import json
+import uuid
 import base64
-import distutils.util
 import threading
+import distutils.util
 import urllib.parse as urlparse
 from modules.convert.util import get
 from modules.convert.util import urlSafe
@@ -350,7 +351,7 @@ async def ConvertsV2Ray(buf):
 						httpOpts["path"] = path
 					httpOpts["headers"] = headers
 
-					vmess["http-opts"] = httpOpts
+					#vmess["http-opts"] = httpOpts
 
 				elif network == "h2":
 					headers = {}
@@ -583,7 +584,21 @@ async def ConvertsV2Ray(buf):
 	for t in threads:
 		t.join()
 
-	if len(proxies) == 0:
+	proxies_len = len(proxies)
+	if proxies_len == 0:
 		raise Exception("No valid proxies found")
+
+	len_list = {}
+	len_list["name"] = f"以下节点共有{proxies_len}个"
+	len_list["type"] = "vmess"
+	len_list["server"] = "0.0.0.0"
+	len_list["port"] = 80
+	len_list["uuid"] = str(uuid.uuid4())
+	len_list["alterId"] = 0
+	len_list["cipher"] = "auto"
+	len_list["udp"] = True
+	len_list["network"] = "ws"
+	# 在列表最前面插入元素
+	proxies.insert(0, len_list)
 
 	return proxies
