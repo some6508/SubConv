@@ -124,6 +124,12 @@ async def sub(request: Request):
 
 	short = args.get("short")
 
+	base_url = str(request.base_url)
+	if "127.0.0.1" in base_url:
+		forwarded_host = request.headers.get("X-Forwarded-Host")
+		if forwarded_host:
+			base_url = f"http://{forwarded_host}/"
+
 	# get proxyrule
 	notproxyrule = args.get("npr")
 
@@ -198,17 +204,17 @@ async def sub(request: Request):
 				if not respText:
 					respText = (requests.get(url[i], headers={'User-Agent': 'clash'})).text
 				content.append(await parse.parseSubs(respText))
-				url[i] = "{}provider?{}".format(request.base_url, urlencode({"url": url[i]}))
+				url[i] = "{}provider?{}".format(base_url, urlencode({"url": url[i]}))
 	if len(content) == 0:
 		content = None
 	if urlstandby:
 		for i in range(len(urlstandby)):
-			urlstandby[i] = "{}provider?{}".format(request.base_url, urlencode({"url": urlstandby[i]}))
+			urlstandby[i] = "{}provider?{}".format(base_url, urlencode({"url": urlstandby[i]}))
 
 	# get the domain or ip of this api to add rule for this
 	domain = re.search(r"([^:]+)(:\d{1,5})?", request.url.hostname).group(1)
 	# generate the subscription
-	result = await pack.pack(url=url, urlstandalone=urlstandalone, urlstandby=urlstandby, urlstandbystandalone=urlstandbystandalone, content=content, interval=interval, domain=domain, short=short, notproxyrule=notproxyrule, base_url=request.base_url)
+	result = await pack.pack(url=url, urlstandalone=urlstandalone, urlstandby=urlstandby, urlstandbystandalone=urlstandbystandalone, content=content, interval=interval, domain=domain, short=short, notproxyrule=notproxyrule, base_url=base_url)
 	return Response(content=result, headers=headers)
 
 
