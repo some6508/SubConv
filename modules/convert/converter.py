@@ -351,7 +351,7 @@ async def ConvertsV2Ray(buf):
 						httpOpts["path"] = path
 					httpOpts["headers"] = headers
 
-					#vmess["http-opts"] = httpOpts
+					# vmess["http-opts"] = httpOpts
 
 				elif network == "h2":
 					headers = {}
@@ -362,7 +362,7 @@ async def ConvertsV2Ray(buf):
 					h2Opts["path"] = get(values.get("path"))
 					h2Opts["headers"] = headers
 
-					vmess["h2-opts"] = h2Opts
+					# vmess["h2-opts"] = h2Opts
 
 				elif network == "ws":
 					headers = {}
