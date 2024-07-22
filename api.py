@@ -103,9 +103,9 @@ async def provider(request: Request):
 	headers = {'Content-Type': 'text/yaml;charset=utf-8'}
 	url = request.query_params.get("url")
 	async with httpx.AsyncClient() as client:
-		resp = await client.get(url, headers={'User-Agent': 'clash'})
+		resp = await client.get(url, headers={'User-Agent': request.headers['User-Agent']})
 		if resp.status_code != 200:
-			resp = requests.get(url, headers={'User-Agent': 'clash'})
+			resp = requests.get(url, headers={'User-Agent': request.headers['User-Agent']})
 		if resp.status_code < 200 or resp.status_code >= 400:
 			raise HTTPException(status_code=resp.status_code, detail=resp.text)
 		result = await parse.parseSubs(resp.text)
@@ -128,7 +128,6 @@ async def sub(request: Request):
 	if "127.0.0.1" in base_url:
 		forwarded_host = request.headers.get("X-Forwarded-Host")
 		_host2 = request.headers.get("X-Host").split(":")[0]
-		print("内容：", _host2)
 		if forwarded_host:
 			base_url = f"http://{forwarded_host}/"
 		elif _host2:
@@ -183,15 +182,15 @@ async def sub(request: Request):
 		headers = {'Content-Type': 'text/yaml;charset=utf-8'}
 		# if there's only one subscription, return userinfo
 		if length(url) == 1:
-			resp = await client.head(url[0], headers={'User-Agent': 'clash'})
+			resp = await client.head(url[0], headers={'User-Agent': request.headers['User-Agent']})
 			if resp.status_code != 200:
-				resp = requests.get(url[0], headers={'User-Agent': 'clash'})
+				resp = requests.get(url[0], headers={'User-Agent': request.headers['User-Agent']})
 			if resp.status_code < 200 or resp.status_code >= 400:
 				raise HTTPException(status_code=resp.status_code, detail=resp.text)
 			elif resp.status_code >= 300 and resp.status_code < 400:
 				while resp.status_code >= 300 and resp.status_code < 400:
 					url[0] = resp.headers['Location']
-					resp = await client.head(url[0], headers={'User-Agent': 'clash'})
+					resp = await client.head(url[0], headers={'User-Agent': request.headers['User-Agent']})
 					if resp.status_code < 200 or resp.status_code >= 400:
 						raise HTTPException(status_code=resp.status_code, detail=resp.text)
 			originalHeaders = resp.headers
@@ -204,9 +203,9 @@ async def sub(request: Request):
 		if url is not None:
 			for i in range(len(url)):
 				# the test of response
-				respText = (await client.get(url[i], headers={'User-Agent': 'clash'})).text
+				respText = (await client.get(url[i], headers={'User-Agent': request.headers['User-Agent']})).text
 				if not respText:
-					respText = (requests.get(url[i], headers={'User-Agent': 'clash'})).text
+					respText = (requests.get(url[i], headers={'User-Agent': request.headers['User-Agent']})).text
 				content.append(await parse.parseSubs(respText))
 				url[i] = "{}provider?{}".format(base_url, urlencode({"url": url[i]}))
 	if len(content) == 0:
@@ -224,11 +223,11 @@ async def sub(request: Request):
 
 # proxy
 @app.get("/proxy")
-async def proxy(url: str):
+async def proxy(request: Request, url: str):
 	# file was big so use stream
 	async def stream():
 		async with httpx.AsyncClient() as client:
-			async with client.stream("GET", url, headers={'User-Agent': 'clash'}) as resp:
+			async with client.stream("GET", url, headers={'User-Agent': request.headers['User-Agent']}) as resp:
 				yield resp.status_code
 				yield resp.headers
 				if resp.status_code < 200 or resp.status_code >= 400:
