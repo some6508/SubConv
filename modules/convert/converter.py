@@ -255,9 +255,9 @@ async def ConvertsV2Ray(buf):
 				if flow != "":
 					vless["flow"] = str(flow).lower()
 
-				# 移除h2-opts
+				# 清空h2-opts内容
 				if 'h2-opts' in vless:
-					del vless['h2-opts']
+					vless['h2-opts'] = {}
 
 				if exists_proxies(proxies, vless):
 					proxies.append(vless)
@@ -355,8 +355,10 @@ async def ConvertsV2Ray(buf):
 						httpOpts["path"] = path
 					httpOpts["headers"] = headers
 
-					# 移除http-opts
-					# vmess["http-opts"] = httpOpts
+					# 清空http-opts内容
+					httpOpts.clear()
+
+					vmess["http-opts"] = httpOpts
 
 				elif network == "h2":
 					headers = {}
@@ -367,8 +369,10 @@ async def ConvertsV2Ray(buf):
 					h2Opts["path"] = get(values.get("path"))
 					h2Opts["headers"] = headers
 
-					# 移除h2-opts
-					# vmess["h2-opts"] = h2Opts
+					# 清空h2-opts内容
+					h2Opts.clear()
+
+					vmess["h2-opts"] = h2Opts
 
 				elif network == "ws":
 					headers = {}
