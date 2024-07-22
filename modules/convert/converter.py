@@ -453,6 +453,10 @@ async def ConvertsV2Ray(buf):
 						"mode": obfsParam[1][5:],
 					}
 
+				# 跳过密码为空的
+				if not ss.get("password"):
+					return
+
 				if exists_proxies(proxies, ss):
 					proxies.append(ss)
 			except:
