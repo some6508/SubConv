@@ -1,8 +1,8 @@
 
 import json
 import uuid
+import time
 import base64
-import threading
 import distutils.util
 import urllib.parse as urlparse
 from modules.convert.util import get
@@ -30,19 +30,21 @@ async def ConvertsV2Ray(buf):
 	names = {}
 
 
-	def exists_proxies(proxies, server_port):
+	async def exists_proxies(proxies, server_port):
 		for proxy in proxies:
 			if proxy["server"] == server_port["server"] and proxy["port"] == server_port["port"]:
 				return False
 		return True
 
 
-	def data_line(line):
+	# 记录开始时间
+	start_time = time.time()
+	for line in arr:
 		if line == "":
-			return
+			continue
 
 		if -1 == line.find("://"):
-			return
+			continue
 		else:
 			scheme, body = line.split("://", 1)
 
@@ -52,7 +54,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlHysteria = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlHysteria.query))
 				name = uniqueName(names, urlparse.unquote(urlHysteria.fragment))
@@ -80,10 +82,10 @@ async def ConvertsV2Ray(buf):
 				hysteria["skip-cert-verify"] = bool(
 					distutils.util.strtobool(query.get("insecure")))
 
-				if exists_proxies(proxies, hysteria):
+				if await exists_proxies(proxies, hysteria):
 					proxies.append(hysteria)
 			except:
-				return
+				continue
 
 		elif scheme == "hysteria2" or scheme == "hy2":
 			try:
@@ -91,7 +93,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlHysteria2 = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlHysteria2.query))
 				name = uniqueName(names, urlparse.unquote(urlHysteria2.fragment))
@@ -126,10 +128,10 @@ async def ConvertsV2Ray(buf):
 				hysteria2["down"] = get(query.get("down"))
 				hysteria2["up"] = get(query.get("up"))
 
-				if exists_proxies(proxies, hysteria2):
+				if await exists_proxies(proxies, hysteria2):
 					proxies.append(hysteria2)
 			except:
-				return
+				continue
 
 		elif scheme == "tuic":
 			try:
@@ -141,7 +143,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlTUIC = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlTUIC.query))
 
@@ -173,17 +175,17 @@ async def ConvertsV2Ray(buf):
 				if udpRelayMode != "":
 					tuic["udp-relay-mode"] = udpRelayMode
 
-				if exists_proxies(proxies, tuic):
+				if await exists_proxies(proxies, tuic):
 					proxies.append(tuic)
 			except:
-				return
+				continue
 
 		elif scheme == "trojan":
 			try:
 				try:
 					urlTrojan = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlTrojan.query))
 
@@ -233,24 +235,24 @@ async def ConvertsV2Ray(buf):
 				else:
 					trojan["client-fingerprint"] = fingerprint
 
-				if exists_proxies(proxies, trojan):
+				if await exists_proxies(proxies, trojan):
 					proxies.append(trojan)
 			except:
-				return
+				continue
 
 		elif scheme == "vless":
 			try:
 				try:
 					urlVless = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlVless.query))
 				vless = {}
 				try:
 					handleVShareLink(names, urlVless, scheme, vless)
 				except:
-					return
+					continue
 				flow = get(query.get("flow"))
 				if flow != "":
 					vless["flow"] = str(flow).lower()
@@ -259,10 +261,10 @@ async def ConvertsV2Ray(buf):
 				if 'h2-opts' in vless:
 					vless['h2-opts'] = {}
 
-				if exists_proxies(proxies, vless):
+				if await exists_proxies(proxies, vless):
 					proxies.append(vless)
 			except:
-				return
+				continue
 
 		elif scheme == "vmess":
 			try:
@@ -273,33 +275,33 @@ async def ConvertsV2Ray(buf):
 					try:
 						urlVMess = urlparse.urlparse(line)
 					except:
-						return
+						continue
 					query = dict(urlparse.parse_qsl(urlVMess.query))
 					vmess = {}
 					try:
 						handleVShareLink(names, urlVMess, scheme, vmess)
 					except:
-						return
+						continue
 					vmess["alterId"] = 0
 					vmess["cipher"] = "auto"
 					encryption = get(query.get("encryption"))
 					if encryption != "":
 						vmess["cipher"] = encryption
 
-					if exists_proxies(proxies, vmess):
+					if await exists_proxies(proxies, vmess):
 						proxies.append(vmess)
-					return
+					continue
 
 				values = {}
 				try:
 					values = json.loads(dcBuf)
 				except:
-					return
+					continue
 
 				try:
 					tempName = values["ps"]
 				except:
-					return
+					continue
 				name = uniqueName(names, tempName)
 				vmess = {}
 
@@ -392,10 +394,10 @@ async def ConvertsV2Ray(buf):
 					grpcOpts["grpc-service-name"] = get(values.get("path"))
 					vmess["grpc-opts"] = grpcOpts
 
-				if exists_proxies(proxies, vmess):
+				if await exists_proxies(proxies, vmess):
 					proxies.append(vmess)
 			except:
-				return
+				continue
 
 		# ss and ssr still WIP
 		elif scheme == "ss":
@@ -403,7 +405,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					urlSS = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				name = uniqueName(names, urlparse.unquote(urlSS.fragment))
 				port = urlSS.port
@@ -412,12 +414,12 @@ async def ConvertsV2Ray(buf):
 					try:
 						dcBuf = base64RawStdDecode(urlSS.hostname)
 					except:
-						return
+						continue
 
 					try:
 						urlSS = urlparse.urlparse("ss://"+dcBuf)
 					except:
-						return
+						continue
 
 				# there may be bugs
 				cipherRaw = urlSS.username
@@ -430,11 +432,11 @@ async def ConvertsV2Ray(buf):
 						try:
 							dcBuf = base64RawURLDecode(cipherRaw)
 						except:
-							return
+							continue
 					try:
 						cipher, password = dcBuf.split(":", 1)
 					except:
-						return
+						continue
 				# ther may be bugs
 
 				ss = {}
@@ -459,29 +461,29 @@ async def ConvertsV2Ray(buf):
 
 				# 跳过密码为空的
 				if not ss.get("password"):
-					return
+					continue
 
-				if exists_proxies(proxies, ss):
+				if await exists_proxies(proxies, ss):
 					proxies.append(ss)
 			except:
-				return
+				continue
 
 		elif scheme == "ssr":
 			try:
 				try:
 					dcBuf = base64RawStdDecode(body)
 				except:
-					return
+					continue
 
 				try:
 					before, after = dcBuf.split("/?", 1)
 				except:
-					return
+					continue
 
 				beforeArr = before.split(":")
 
 				if len(beforeArr) < 6:
-					return
+					continue
 
 				host = beforeArr[0]
 				port = beforeArr[1]
@@ -493,7 +495,7 @@ async def ConvertsV2Ray(buf):
 				try:
 					query = dict(urlparse.parse_qsl(urlSafe(after)))
 				except:
-					return
+					continue
 
 				remarks = base64RawURLDecode(query.get("remarks"))
 				name = uniqueName(names, remarks)
@@ -518,17 +520,17 @@ async def ConvertsV2Ray(buf):
 				if protocolParam != "":
 					ssr["protocol-param"] = protocolParam
 
-				if exists_proxies(proxies, ssr):
+				if await exists_proxies(proxies, ssr):
 					proxies.append(ssr)
 			except:
-				return
+				continue
 
 		elif scheme == "tg":
 			try:
 				try:
 					urlTG = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlTG.query))
 
@@ -549,17 +551,17 @@ async def ConvertsV2Ray(buf):
 				if password != "":
 					tg["password"] = password
 
-				if exists_proxies(proxies, tg):
+				if await exists_proxies(proxies, tg):
 					proxies.append(tg)
 			except:
-				return
+				continue
 
 		elif scheme == "https":
 			try:
 				try:
 					urlHTTPS = urlparse.urlparse(line)
 				except:
-					return
+					continue
 
 				query = dict(urlparse.parse_qsl(urlHTTPS.query))
 
@@ -584,26 +586,22 @@ async def ConvertsV2Ray(buf):
 				if password != "":
 					tg["passwork"] = password
 
-				if exists_proxies(proxies, tg):
+				if await exists_proxies(proxies, tg):
 					proxies.append(tg)
 			except:
-				return
+				continue
 
-	threads = []
-	for line in arr:
-		t = threading.Thread(target=data_line, args=(line,))
-		threads.append(t)
-		t.start()
-
-	for t in threads:
-		t.join()
+	# 记录结束时间
+	end_time = time.time()
+	# 计算时长，单位秒
+	duration = end_time - start_time
 
 	proxies_len = len(proxies)
 	if proxies_len == 0:
 		raise Exception("No valid proxies found")
 
 	len_list = {}
-	len_list["name"] = f"以下节点共有{proxies_len}个"
+	len_list["name"] = f"节点解析{duration:2.2f}秒 共{proxies_len}个"
 	len_list["type"] = "vmess"
 	len_list["server"] = "0.0.0.0"
 	len_list["port"] = 80
