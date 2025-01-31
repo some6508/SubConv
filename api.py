@@ -5,9 +5,10 @@ import httpx
 import uvicorn
 import argparse
 import aiofiles
+import traceback
 from pathlib import Path
 from datetime import datetime
-from urllib.parse import urlencode, unquote
+from urllib.parse import urlencode
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
@@ -58,7 +59,7 @@ async def provider(request: Request):
 			if resp.status_code != 200:
 				raise HTTPException(status_code=resp.status_code, detail=f"请求失败{url}")
 			if resp.text:
-				Headers = DeepSeek.parse_info(resp.headers)
+				Headers = await DeepSeek.parse_info(resp.headers)
 				result = await SubV2Ray.Sub(resp.text, headers=Headers)
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
@@ -67,7 +68,7 @@ async def provider(request: Request):
 			print(f"出现错误请求：{url}")
 			print(f"错误来源: {e.__class__.__name__}")
 			print(f"错误信息: {e}")
-			pass
+			traceback.print_exc()
 	return Response(content=result, headers=headers)
 
 
@@ -114,25 +115,14 @@ async def sub(request: Request):
 			try:
 				response = await client.get(url[i], headers={'User-Agent': url_ua}, follow_redirects=True)
 				if response.status_code == 200:
-					url_headers = response.headers
+					url_headers = await DeepSeek.parse_info(response.headers)
 					temp = {"链接": "{}provider?{}".format(base_url, urlencode({"url": url[i]}))}
-					if 'Content-Disposition' in url_headers:  # 订阅名
-						match = url_headers['Content-Disposition'].split("''")[1]
-						try:
-							match = match.split("=")[1]
-						except:
-							pass
-						if match:
-							temp["订阅"] = "{:02}@".format(i) + unquote(match, encoding='utf-8')
-						else:
-							temp["订阅"] = "{:02}@订阅来源".format(i)
+					if url_headers['filename']:  # 订阅名
+						temp["订阅"] = "{:02}@".format(i) + url_headers['filename']
 					else:
 						temp["订阅"] = "{:02}@订阅来源".format(i)
-					if 'subscription-userinfo' in url_headers:  # 订阅流量和日期
-						temp["流量"] = url_headers["subscription-userinfo"]
 
-					Headers = await DeepSeek.parse_info(url_headers)
-					temp["数据"] = await SubV2Ray.Sub(response.text, headers=Headers)
+					temp["数据"] = await SubV2Ray.Sub(response.text, headers=url_headers)
 					data.append(temp)
 				else:
 					print(f"！请求失败 {response.status_code}：{url[i]}")
@@ -140,11 +130,14 @@ async def sub(request: Request):
 				print(f"出现错误请求：{url[i]}")
 				print(f"错误来源: {e.__class__.__name__}")
 				print(f"错误信息: {e}")
-				pass
-		result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url)
-		# 获取当前时间并格式化
-		current_time = datetime.now().isoformat()
-		result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+				traceback.print_exc()
+		if data:
+			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url)
+			# 获取当前时间并格式化
+			current_time = datetime.now().isoformat()
+			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+		else:
+			raise HTTPException(status_code=404, detail="请求出现错误")
 	return Response(content=result, headers=headers)
 
 
@@ -174,15 +167,16 @@ async def proxy(request: Request, url: str):
 	return StreamingResponse(streamResp, media_type=headers['Content-Type'])
 
 
-@app.get("/ccaeo")
-async def ccaeo(request: Request):
+@app.get("/日志")
+async def 日志(request: Request):
+	headers = request.headers
 	log_file_path = Path("/www/wwwlogs/python/SubConv/error.log")
 
 	try:
 		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
 			lines = await f.readlines()
 			last_line = lines[-1000:]  # 显示后面1000行内容
-			return {"ccaeo": last_line}
+			return {"响应头": headers, "日志": last_line}
 	except FileNotFoundError:
 		raise HTTPException(status_code=404, detail="没有日志文件")
 	except Exception as e:

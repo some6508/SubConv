@@ -3,94 +3,120 @@ from datetime import datetime
 
 
 async def parse_info(headers):
-	"""解析包含流量信息的HTTP头信息"""
+	"""增强版流量信息解析器，支持无限流量和RFC编码"""
+
 	def parse_sub_params(header_value):
-		"""解析subscription-userinfo参数"""
+		"""处理包含Infinity的特殊数值解析"""
 		params = {}
 		for item in header_value.split(';'):
 			item = item.strip()
 			if not item:
 				continue
-			try:
-				key, value = item.split('=', 1)
-				key = key.strip().lower()
-				value = value.strip()
 
-				# 处理空值和数值转换
-				if not value:
-					params[key] = None
-				else:
-					try:
-						params[key] = int(value)
-					except ValueError:
-						params[key] = value  # 保留原始字符串值
-			except ValueError:
+			# 处理键值分割
+			if '=' not in item:
 				continue
+
+			key, value = item.split('=', 1)
+			key = key.strip().lower()
+			value = value.strip()
+
+			# 特殊值处理
+			if value.lower() == 'infinity':
+				params[key] = float('inf')
+			elif not value:  # 空值处理
+				params[key] = None
+			else:
+				# 数值转换尝试
+				try:
+					params[key] = int(value)
+				except ValueError:
+					params[key] = value  # 保留原始值
+
 		return params
 
 	def parse_filename(header_value):
-		"""解析RFC 5987编码的文件名"""
+		"""增强版文件名解析，处理多编码声明"""
 		filename = None
+
+		# 优先处理RFC 5987编码格式
 		for part in header_value.split(';'):
 			part = part.strip()
 			if part.lower().startswith('filename*='):
-				# 处理编码文件名
-				value_part = part.split('*=', 1)[-1]
-				if "'" in value_part:
-					try:
-						charset, _, filename_enc = value_part.split("'", 2)
+				try:
+					# 分割编码声明和值
+					_, encoded_part = part.split('*=', 1)
+
+					# 处理带字符集的格式：utf-8''filename
+					if "'" in encoded_part:
+						charset, _, filename_enc = encoded_part.split("'", 2)
 						filename_bytes = urllib.parse.unquote_to_bytes(filename_enc)
 						filename = filename_bytes.decode(charset)
-					except (ValueError, LookupError, UnicodeDecodeError):
-						pass
-				else:
-					filename_bytes = urllib.parse.unquote_to_bytes(value_part)
-					filename = filename_bytes.decode('utf-8', errors='replace')
-				break
+					else:
+						# 无字符集声明时默认UTF-8
+						filename_bytes = urllib.parse.unquote_to_bytes(encoded_part)
+						filename = filename_bytes.decode('utf-8')
+					break
+				except (ValueError, LookupError, UnicodeDecodeError):
+					continue
 
 		# 回退到普通filename参数
-		if filename is None:
+		if not filename:
 			for part in header_value.split(';'):
 				part = part.strip()
 				if part.lower().startswith('filename='):
-					filename = part.split('=', 1)[-1].strip('" ')
+					filename = part.split('=', 1)[1].strip('" ')
 					filename = urllib.parse.unquote(filename)
 					break
 
 		return filename or ""
 
-	def format_flow(bytes_num):
-		"""智能转换流量单位"""
-		if bytes_num is None or bytes_num < 0:
+	def format_flow(value):
+		"""智能流量格式化，支持无限大"""
+		if isinstance(value, float) and value == float('inf'):
+			return "∞"
+
+		if not isinstance(value, (int, float)) or value < 0:
 			return "0.00 B"
 
 		units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 		unit_idx = 0
-		while bytes_num >= 1024 and unit_idx < 5:
-			bytes_num /= 1024
-			unit_idx += 1
-		return f"{bytes_num:.2f} {units[unit_idx]}"
+		value = float(value)
 
-	# 主解析逻辑
+		while value >= 1024 and unit_idx < len(units)-1:
+			value /= 1024
+			unit_idx += 1
+
+		return f"{value:.2f} {units[unit_idx]}" if unit_idx > 0 else f"{int(value)} B"
+
+	def format_expire(timestamp):
+		"""时间戳转换增强版"""
+		if not isinstance(timestamp, (int, float)) or timestamp <= 0:
+			return "无到期时间"
+
+		try:
+			# 处理32位系统限制
+			max_timestamp = 32503680000  # 3000-01-01
+			if timestamp > max_timestamp:
+				return "永久有效"
+
+			return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S UTC')
+		except (ValueError, OSError):
+			return "时间格式无效"
+
+	# 主解析流程
 	info = parse_sub_params(headers.get('subscription-userinfo', ''))
 
-	# 获取核心参数（带默认值）
+	# 核心参数提取
 	upload = info.get('upload', 0) or 0
 	download = info.get('download', 0) or 0
 	total = info.get('total', 0) or 0
 	expire = info.get('expire')
 
-	# 计算衍生指标
-	used = download  # 根据业务逻辑定义已用流量
-	remaining = total - download if isinstance(total, int) and isinstance(download, int) else 0
-
-	# 时间戳转换
-	expire_str = "长期"
-	if isinstance(expire, int) and expire > 0:
-		try:
-			expire_str = datetime.utcfromtimestamp(expire).strftime('%Y-%m-%d %H:%M:%S UTC')
-		except (ValueError, OSError):
-			expire_str = "无效时间戳"
+	# 流量计算逻辑
+	is_infinite = isinstance(total, float) and total == float('inf')
+	used = download
+	remaining = float('inf') if is_infinite else (total - download if total >= download else 0)
 
 	return {
 		'filename': parse_filename(headers.get('content-disposition', '')),
@@ -99,6 +125,6 @@ async def parse_info(headers):
 		'total': format_flow(total),
 		'used': format_flow(used),
 		'remaining': format_flow(remaining),
-		'expire': expire_str,
-		'raw_data': info  # 原始参数信息
+		'expire': format_expire(expire),
+		'raw_data': info
 	}
