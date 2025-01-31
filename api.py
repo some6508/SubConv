@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+# coding=utf-8
+import re
+import httpx
+import uvicorn
+import argparse
+import aiofiles
+from pathlib import Path
+from datetime import datetime
+from urllib.parse import urlencode, unquote
+from fastapi import FastAPI, HTTPException
+from fastapi.requests import Request
+from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+
+# 自定义
+from mod import SubV2Ray, SubPack, DeepSeek
+
+# 开始运行
+if __name__ == "__main__":
+	# 设置默认参数
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--port", "-P", type=int, default=8080, help="端口设置, 默认: 8080")
+	parser.add_argument("--host", "-H", type=str, default="0.0.0.0", help="IP设置, 默认: 0.0.0.0")
+	parser.add_argument("--version", "-V", action="version", version="版本: v1.0.0（20250120）")
+	args = parser.parse_args()
+
+	print("IP:", args.host)
+	print("端口:", args.port)
+	module_name = __name__.split(".")[0]
+	# 调试运行
+	# uvicorn.run(module_name + ":app", host=args.host, port=args.port, reload=True)
+	# 正常运行
+	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4)
+
+# 服务器端
+app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/")
+async def 主页():
+	# 返回文件内容
+	return FileResponse("static/index.html")
+
+
+@app.get("/provider")
+async def provider(request: Request):
+	headers = {'Content-Type': 'text/yaml;charset=utf-8'}
+	url = request.query_params.get("url")
+	url_ua = request.headers.get('User-Agent', 'clash')
+	if "clash" not in url_ua:
+		url_ua = "clash"
+	async with httpx.AsyncClient() as client:
+		try:
+			resp = await client.get(url, headers={'User-Agent': url_ua}, follow_redirects=True)
+			if resp.status_code != 200:
+				raise HTTPException(status_code=resp.status_code, detail=f"请求失败{url}")
+			if resp.text:
+				Headers = DeepSeek.parse_info(resp.headers)
+				result = await SubV2Ray.Sub(resp.text, headers=Headers)
+			# 获取当前时间并格式化
+			current_time = datetime.now().isoformat()
+			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+		except Exception as e:
+			print(f"出现错误请求：{url}")
+			print(f"错误来源: {e.__class__.__name__}")
+			print(f"错误信息: {e}")
+			pass
+	return Response(content=result, headers=headers)
+
+
+@app.get("/sub")
+async def sub(request: Request):
+	args = request.query_params
+
+	# 获取域名或ip
+	domain = re.search(r"([^:]+)(:\d{1,5})?", request.url.hostname).group(1)
+	base_url = str(request.base_url)
+	if "127.0.0.1" in base_url:  # 如果是本地ip
+		forwarded_host = request.headers.get("X-Forwarded-Host") or request.headers.get("X-Host", "").split(":")[0]
+		if forwarded_host:
+			base_url = f"http://{forwarded_host}/"
+			domain = forwarded_host
+
+	# 获取请求UA
+	url_ua = request.headers.get('User-Agent', 'clash')
+	if "clash" not in url_ua:  # 如果不是clash
+		url_ua = "clash"
+	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': "inline; filename*=utf-8''SubConv"}
+
+	# 从args获取链接
+	url = args.get("url", "")
+	url = re.split(r"[|\n]", url)
+	tmp = list(filter(lambda x: x != "", url))
+	if not tmp:
+		raise HTTPException(status_code=404, detail="！没有url链接")
+	url = []  # 链接
+	urls = []  # v2
+	for i in tmp:  # 判断文件
+		if (i.startswith("http://") or i.startswith("https://")) and not i.startswith("https://t.me/"):
+			url.append(i)
+		else:
+			urls.append(i)
+
+	urls = "\n".join(urls)
+	# 如果有v2先解析
+	urls = await SubV2Ray.解析(urls)
+
+	async with httpx.AsyncClient() as client:
+		data = []
+		for i in range(len(url)):
+			try:
+				response = await client.get(url[i], headers={'User-Agent': url_ua}, follow_redirects=True)
+				if response.status_code == 200:
+					url_headers = response.headers
+					temp = {"链接": "{}provider?{}".format(base_url, urlencode({"url": url[i]}))}
+					if 'Content-Disposition' in url_headers:  # 订阅名
+						match = url_headers['Content-Disposition'].split("''")[1]
+						try:
+							match = match.split("=")[1]
+						except:
+							pass
+						if match:
+							temp["订阅"] = "{:02}@".format(i) + unquote(match, encoding='utf-8')
+						else:
+							temp["订阅"] = "{:02}@订阅来源".format(i)
+					else:
+						temp["订阅"] = "{:02}@订阅来源".format(i)
+					if 'subscription-userinfo' in url_headers:  # 订阅流量和日期
+						temp["流量"] = url_headers["subscription-userinfo"]
+
+					Headers = await DeepSeek.parse_info(url_headers)
+					temp["数据"] = await SubV2Ray.Sub(response.text, headers=Headers)
+					data.append(temp)
+				else:
+					print(f"！请求失败 {response.status_code}：{url[i]}")
+			except Exception as e:
+				print(f"出现错误请求：{url[i]}")
+				print(f"错误来源: {e.__class__.__name__}")
+				print(f"错误信息: {e}")
+				pass
+		result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url)
+		# 获取当前时间并格式化
+		current_time = datetime.now().isoformat()
+		result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+	return Response(content=result, headers=headers)
+
+
+@app.get("/proxy")
+async def proxy(request: Request, url: str):
+	url_ua = request.headers.get('User-Agent', 'clash')
+	if "clash" not in url_ua:
+		url_ua = "clash"
+
+	# file was big so use stream
+	async def stream():
+		async with httpx.AsyncClient() as client:
+			async with client.stream("GET", url, headers={'User-Agent': url_ua}, follow_redirects=True) as resp:
+				yield resp.status_code
+				yield resp.headers
+				if resp.status_code < 200 or resp.status_code >= 400:
+					yield await resp.aread()
+					return
+				async for chunk in resp.aiter_bytes():
+					yield chunk
+
+	streamResp = stream()
+	status_code = await streamResp.__anext__()
+	headers = await streamResp.__anext__()
+	if status_code < 200 or status_code >= 400:
+		raise HTTPException(status_code=status_code, detail=await streamResp.__anext__())
+	return StreamingResponse(streamResp, media_type=headers['Content-Type'])
+
+
+@app.get("/ccaeo")
+async def ccaeo(request: Request):
+	log_file_path = Path("/www/wwwlogs/python/SubConv/error.log")
+
+	try:
+		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
+			lines = await f.readlines()
+			last_line = lines[-1000:]  # 显示后面1000行内容
+			return {"ccaeo": last_line}
+	except FileNotFoundError:
+		raise HTTPException(status_code=404, detail="没有日志文件")
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+
+
+# 如果没有相应请求
+@app.get("/{path:path}")
+async def index(path):
+	if Path("static/" + path).exists():
+		return FileResponse("static/" + path)
+	else:
+		raise HTTPException(status_code=404, detail=f"！无效的请求：{path}")

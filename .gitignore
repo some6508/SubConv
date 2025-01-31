@@ -1,0 +1,8 @@
+__pycache__/
+.idea/
+.vscode/
+.vercel
+node_modules/
+docs/.vitepress/cache/
+dist/
+.venv/

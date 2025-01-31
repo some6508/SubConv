@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订阅转换</title>
+    <style>
+        html, body { width: 100%; height: 100%; text-align: center; }
+        #shortLinkContainer { margin: 20px; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        button { padding: 0 0; cursor: pointer; }
+        p {
+            width: 100%; /* 设置段落的宽度 */
+            border: 1px solid black; /* 为了可视化效果，添加一个边框 */
+            white-space: normal; /* 默认值，允许文本自动换行 */
+            word-wrap: break-word; /* 或者使用 overflow-wrap: break-word; 来确保长单词也能被拆分换行 */
+        }
+    </style>
+    <script crossorigin src="script.js"></script>
+</head>
+<body>
+<h1>订阅转换</h1>
+<div class="fullscreen" id="shortLinkContainer"></div>
+</body>
+</html>
+

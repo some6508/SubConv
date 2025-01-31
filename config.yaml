@@ -1,0 +1,138 @@
+HEAD:
+  mixed-port: 7890 # 混合端口 同时支持 HTTP(S) 和 SOCKS5 协议
+  ipv6: false # IPv6 是否允许内核接受 IPv6 流量
+  mode: rule # 运行模式 rule / global / direct ,Clash Meta 暂不支持 script
+  log-level: info # 日志级别 silent / error / warning / info / debug
+  allow-lan: true # 允许局域网连接 false / true
+  unified-delay: false # 统一延迟 更换延迟计算方式,去除握手等额外延迟
+  tcp-concurrent: false # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
+  external-controller: 0.0.0.0:9090 # API 监听地址
+  external-ui: ./ui # 外部用户界面 路径
+  external-ui-name: zashboard # 自定义外部用户界面名字
+  external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+  #  secret: 'clash' # API 的访问密钥
+  keep-alive-interval: 15 # 缓解移动设备耗电问题  # TCP Keep Alive 间隔,单位分钟 | 控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
+  global-client-fingerprint: chrome # 全局客户端指纹 # 随机指纹
+  geodata-mode: false # GEOIP 数据模式,更改 geoip 使用文件,mmdb 或者 dat,可选,true 为 dat
+  geo-auto-update: true # 自动更新 GEO 是否启用,可选 true/false
+  geo-update-interval: 24 # 更新间隔,单位小时
+  geox-url: # 自定 GEO 下载地址
+    geoip: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/geoip.dat
+    geosite: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/geosite.dat
+    mmdb: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/Country.mmdb
+    asn: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/Country-ASN.mmdb
+
+  # 缓存
+  profile:
+    store-selected: false #储存 API 对策略组的选择，以供下次启动时使用
+    store-fake-ip: false #储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
+
+  # 网卡
+  tun:
+    enable: true # 启用 tun
+    stack: system  # or 'gvisor'
+    dns-hijack:
+      - any:53
+      - tcp://any:53
+    auto-route: true # 自动设置全局路由，可以自动将全局流量路由进入 tun 网卡。
+    auto-redirect: true # 自动配置 iptables/nftables 以重定向 TCP 连接，需要auto-route已启用
+    auto-detect-interface: true # 自动选择流量出口接口，多出口网卡同时连接的设备建议手动指定出口网卡
+
+  # DNS设置
+  dns:
+    enable: true # 关闭将使用系统 DNS
+    listen: 0.0.0.0:1053 # 开启 DNS 服务器监听
+    ipv6: false # false 将返回 AAAA 的空结果
+    enhanced-mode: fake-ip  # mihomo 的 DNS 处理模式 redir-host / fake-ip
+    #    fake-ip-filter-mode: blacklist # 可选 blacklist/whitelist，默认blacklist，whitelist 即只有匹配成功才返回 fake-ip
+    fake-ip-range: 198.18.0.0/15  # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
+    fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
+      - +.lan
+      - localhost.ptlogin2.qq.com
+    default-nameserver: # 用于解析 nameserver,fallback 以及其他DNS服务器配置的,DNS 服务域名,只能使用纯 IP 地址,可使用加密的IP DNS
+      - 119.29.29.29
+      - 223.5.5.5
+      - 8.8.8.8
+      - 1.1.1.1
+    nameserver: # 默认域名解析服务器,如不配置 fallback/proxy-server-nameserver , 则所有域名都由 nameserver 解析
+      - https://119.29.29.29/dns-query
+      - https://223.5.5.5/dns-query
+      - https://8.8.8.8/dns-query
+      - https://1.1.1.1/dns-query
+    proxy-server-nameserver: # 仅用于解析代理节点的域名,配置服务器若查询失败将使用 nameserver,非并发查询
+      - https://119.29.29.29/dns-query
+      - https://223.5.5.5/dns-query
+    nameserver-policy: # 使用指定的 DNS 服务器,优先于 nameserver/fallback 查询
+      geosite:private,cn:
+        - https://119.29.29.29/dns-query
+        - https://223.5.5.5/dns-query
+    fallback: # 后备域名解析服务器
+      - https://8.8.8.8/dns-query
+      - https://1.1.1.1/dns-query
+
+
+# 测速链接
+TEST_URL: https://www.gstatic.com/generate_204
+
+# 规则
+RULESET:
+
+  - - 🛑 拦截访问
+    - https://adrules.top/adrules.list,http
+
+  #- - 🛑 拦截访问
+  #  - https://raw.githubusercontent.com/DustinWin/ruleset_geodata/clash-ruleset/ads.mrs
+
+  #- - 🛑 拦截访问
+  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AdvertisingLite/AdvertisingLite.list
+
+  - - 🛑 拦截访问
+    - '[]GEOSITE,CATEGORY-ADS-ALL'
+
+  - - 🚀 节点选择
+    - '[]OR,((GEOSITE,GEOLOCATION-!CN),(GEOSITE,GOOGLE))'
+
+  - - 🚀 节点选择
+    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Proxy/Proxy.list
+
+  - - 🎯 直连访问
+    - '[]OR,((GEOSITE,CN),(GEOIP,CN,NO-RESOLVE))'
+
+  - - 🎯 直连访问
+    - '[]OR,((GEOSITE,PRIVATE),(GEOIP,PRIVATE,NO-RESOLVE))'
+
+  - - 🐟 漏网之鱼
+    - '[]FINAL'
+
+# 策略组
+CUSTOM_PROXY_GROUP:
+
+  - name: ♻️ 自动选择
+    type: url-test
+    #  regex: ^(?!.*[倍计费省]).*$
+    rule: false
+
+  - name: ☁️ 故障转移
+    type: fallback
+    rule: false
+
+  - name: 🔮 负载均衡
+    type: load-balance
+    rule: false
+
+  - name: 🖲️ 手动选择
+    type: select
+    manual: true
+    rule: false
+
+  - name: 🎯 直连访问
+    type: select
+    prior: DIRECT
+
+  - name: 🛑 拦截访问
+    type: select
+    prior: REJECT
+
+  - name: 🐟 漏网之鱼
+    type: select
+    prior: PROXY
