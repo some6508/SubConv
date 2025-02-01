@@ -25,12 +25,8 @@ if __name__ == "__main__":
 	parser.add_argument("--version", "-V", action="version", version="版本: v1.0.0（20250120）")
 	args = parser.parse_args()
 
-	print("IP:", args.host)
-	print("端口:", args.port)
 	module_name = __name__.split(".")[0]
-	# 调试运行
-	# uvicorn.run(module_name + ":app", host=args.host, port=args.port, reload=True)
-	# 正常运行
+	# 运行
 	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4)
 
 # 服务器端
@@ -124,7 +120,7 @@ async def sub(request: Request):
 					temp["数据"] = await SubV2Ray.Sub(response.text, headers=url_headers)
 					data.append(temp)
 				else:
-					print(f"！请求失败 {response.status_code}：{url[i]}")
+					print(f"请求失败 {response.status_code}: {url[i]}")
 			except Exception as e:
 				print(f"请求链接: {url[i]}")
 				print(f"错误来源: {e.__class__.__name__}")

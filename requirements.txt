@@ -3,6 +3,5 @@ PyYAML
 httpx
 uvicorn
 fastapi
-loguru
 pydantic-settings-yaml
 aiofiles
