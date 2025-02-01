@@ -5,7 +5,6 @@ import httpx
 import uvicorn
 import argparse
 import aiofiles
-import traceback
 from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlencode
@@ -65,10 +64,10 @@ async def provider(request: Request):
 			current_time = datetime.now().isoformat()
 			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
 		except Exception as e:
-			print(f"出现错误请求：{url}")
+			print(f"请求链接: {url}")
 			print(f"错误来源: {e.__class__.__name__}")
-			print(f"错误信息: {e}")
-			traceback.print_exc()
+			print(f"错误信息: {str(e)}")
+			raise HTTPException(status_code=resp.status_code, detail="出现请求错误")
 	return Response(content=result, headers=headers)
 
 
@@ -127,10 +126,9 @@ async def sub(request: Request):
 				else:
 					print(f"！请求失败 {response.status_code}：{url[i]}")
 			except Exception as e:
-				print(f"出现错误请求：{url[i]}")
+				print(f"请求链接: {url[i]}")
 				print(f"错误来源: {e.__class__.__name__}")
-				print(f"错误信息: {e}")
-				traceback.print_exc()
+				print(f"错误信息: {str(e)}")
 		if data:
 			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url)
 			# 获取当前时间并格式化
