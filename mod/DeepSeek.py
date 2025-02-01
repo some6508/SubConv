@@ -116,7 +116,10 @@ async def parse_info(headers):
 	# 流量计算逻辑
 	is_infinite = isinstance(total, float) and total == float('inf')
 	used = download
-	remaining = float('inf') if is_infinite else (total - download if total >= download else 0)
+	try:
+		remaining = float('inf') if is_infinite else (total - download if total >= download else 0)
+	except:
+		remaining = float('inf')
 
 	return {
 		'filename': parse_filename(headers.get('content-disposition', '')),
