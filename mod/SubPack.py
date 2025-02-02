@@ -156,14 +156,11 @@ async def pack(数据: list, 节点: list, 域名: str):
 	rule_map = {}
 	classical = {
 		"type": "http",
-		"behavior": "classical",
-		"format": "text",
 		"interval": 86400 * 7,
 	}
 	for item in config.configInstance.RULESET:
 		url = item[1]
 		name = urlparse(url).path.split("/")[-1].split(".")[0]
-		types = "txt"
 		if ".mrs" in url:
 			types = "mrs"
 			classical["behavior"] = "domain"
@@ -172,6 +169,10 @@ async def pack(数据: list, 节点: list, 域名: str):
 			types = "yaml"
 			classical["behavior"] = "domain"
 			classical["format"] = "yaml"
+		else:
+			types = "txt"
+			classical["behavior"] = "classical"
+			classical["format"] = "text"
 
 		while name in rule_map:
 			name += str(random.randint(0, 9))

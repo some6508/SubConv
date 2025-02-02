@@ -169,8 +169,8 @@ async def 日志(request: Request):
 	try:
 		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
 			lines = await f.readlines()
-			last_line = lines[-1000:]  # 显示后面1000行内容
-			reversed_lines = last_line[::-1]  # 反转行顺序
+			# last_line = lines[-1000:]  # 显示后面1000行内容
+			reversed_lines = lines[::-1]  # 反转行顺序
 			return {"响应头": headers, "日志": reversed_lines}
 	except FileNotFoundError:
 		raise HTTPException(status_code=404, detail="没有日志文件")
