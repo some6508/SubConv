@@ -8,6 +8,7 @@ HEAD:
   tcp-concurrent: false # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
   external-controller: 0.0.0.0:9090 # API 监听地址
   external-ui: ./ui # 外部用户界面 路径
+#  external-ui-name: zashboard # 自定义外部用户界面名字
   external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
   #  secret: 'clash' # API 的访问密钥
   keep-alive-interval: 15 # 缓解移动设备耗电问题  # TCP Keep Alive 间隔,单位分钟 | 控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
@@ -26,7 +27,7 @@ HEAD:
     store-selected: false #储存 API 对策略组的选择，以供下次启动时使用
     store-fake-ip: false #储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
 
-  # 网卡
+  # 代理模式
   tun:
     enable: true # 启用 tun
     stack: system  # or 'gvisor'
@@ -46,32 +47,22 @@ HEAD:
     #    fake-ip-filter-mode: blacklist # 可选 blacklist/whitelist，默认blacklist，whitelist 即只有匹配成功才返回 fake-ip
     fake-ip-range: 198.18.0.0/15  # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
     fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
-      - +.lan
-      - localhost.ptlogin2.qq.com
-    default-nameserver: # 用于解析 nameserver,fallback 以及其他DNS服务器配置的,DNS 服务域名,只能使用纯 IP 地址,可使用加密的IP DNS
-      - 119.29.29.29
-      - 223.5.5.5
-      - 8.8.8.8
-      - 1.1.1.1
-    nameserver: # 默认域名解析服务器,如不配置 fallback/proxy-server-nameserver , 则所有域名都由 nameserver 解析
-      - https://119.29.29.29/dns-query
-      - https://223.5.5.5/dns-query
-      - https://8.8.8.8/dns-query
-      - https://1.1.1.1/dns-query
-    proxy-server-nameserver: # 仅用于解析代理节点的域名,配置服务器若查询失败将使用 nameserver,非并发查询
-      - https://119.29.29.29/dns-query
-      - https://223.5.5.5/dns-query
+      - geosite:private,cn
     nameserver-policy: # 使用指定的 DNS 服务器,优先于 nameserver/fallback 查询
+      geosite:category-ads-all:
+        - rcode://success
       geosite:private,cn:
         - https://119.29.29.29/dns-query
+        - https://120.53.53.53/dns-query
+        - https://1.12.12.12/dns-query
         - https://223.5.5.5/dns-query
-    fallback: # 后备域名解析服务器
-      - https://8.8.8.8/dns-query
+    nameserver: # 默认域名解析服务器,如不配置 fallback/proxy-server-nameserver , 则所有域名都由 nameserver 解析
       - https://1.1.1.1/dns-query
+      - https://8.8.8.8/dns-query
 
 
 # 测速链接
-TEST_URL: https://www.gstatic.com/generate_204
+TEST_URL: https://cp.cloudflare.com
 
 # 规则
 RULESET:

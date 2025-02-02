@@ -63,7 +63,7 @@ async def provider(request: Request):
 			print(f"请求链接: {url}")
 			print(f"错误来源: {e.__class__.__name__}")
 			print(f"错误信息: {str(e)}")
-			raise HTTPException(status_code=resp.status_code, detail="出现请求错误")
+			raise HTTPException(status_code=404, detail="出现请求错误")
 	return Response(content=result, headers=headers)
 
 
