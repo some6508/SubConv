@@ -59,6 +59,10 @@ async def provider(request: Request):
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
 			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+			if 'subscription-userinfo' in resp.headers:  # 流量及日期信息
+				headers['subscription-userinfo'] = resp.headers['subscription-userinfo']
+			if 'Content-Disposition' in resp.headers:  # 订阅名
+				headers['Content-Disposition'] = resp.headers['Content-Disposition'].replace("attachment", "inline")
 		except Exception as e:
 			print(f"请求链接: {url}")
 			print(f"错误来源: {e.__class__.__name__}")
