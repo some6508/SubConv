@@ -17,10 +17,10 @@ HEAD:
   geo-auto-update: true # 自动更新 GEO 是否启用,可选 true/false
   geo-update-interval: 24 # 更新间隔,单位小时
   geox-url: # 自定 GEO 下载地址
-    geoip: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/geoip.dat
-    geosite: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/geosite.dat
-    mmdb: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/Country.mmdb
-    asn: https://mirror.ghproxy.com/https://github.com/Sereinfy/ruleset_geodata/releases/download/clash/Country-ASN.mmdb
+    geoip: https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat
+    geosite: https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat
+    mmdb: https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb
+    asn: https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb
 
   # 缓存
   profile:

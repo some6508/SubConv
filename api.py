@@ -63,6 +63,9 @@ async def provider(request: Request):
 				headers['subscription-userinfo'] = resp.headers['subscription-userinfo']
 			if 'Content-Disposition' in resp.headers:  # 订阅名
 				headers['Content-Disposition'] = resp.headers['Content-Disposition'].replace("attachment", "inline")
+				# 使用正则表达式去除 filename= 部分
+				pattern = r';\s*filename=[^;]*'
+				headers['Content-Disposition'] = re.sub(pattern, '', headers['Content-Disposition'])
 		except Exception as e:
 			print(f"请求链接: {url}")
 			print(f"错误来源: {e.__class__.__name__}")
