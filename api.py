@@ -2,6 +2,7 @@
 # coding=utf-8
 import re
 import httpx
+import random
 import uvicorn
 import argparse
 import aiofiles
@@ -11,7 +12,7 @@ from urllib.parse import urlencode
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse, RedirectResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse, RedirectResponse, HTMLResponse
 
 # 自定义
 from mod import SubV2Ray, SubPack, DeepSeek
@@ -37,17 +38,27 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def 主页():
+	# 生成随机数
+	random_number = random.random()
+	async with aiofiles.open("static/index.html", "r", encoding="utf-8") as f:
+		lines = await f.readlines()
+		html_content = "\n".join(lines)
+
+		# 在head标签内插入script标签
+		script_tag = f'<script src="script.js?v={random_number}"></script>'
+		html_content = html_content.replace('</head>', script_tag + '</head>')
+		return HTMLResponse(content=html_content)
 	# 返回文件内容
-	return FileResponse("static/index.html")
+	# return FileResponse("static/index.html")
 
 
 @app.get("/provider")
 async def provider(request: Request):
 	headers = {'Content-Type': 'text/yaml;charset=utf-8'}
 	url = request.query_params.get("url")
-	url_ua = request.headers.get('User-Agent', 'clash')
+	url_ua = request.headers.get('User-Agent', 'clash-verge')
 	if "clash" not in url_ua:
-		url_ua = "clash"
+		url_ua = "clash-verge"
 	async with httpx.AsyncClient() as client:
 		try:
 			resp = await client.get(url, headers={'User-Agent': url_ua}, follow_redirects=True)
@@ -88,9 +99,9 @@ async def sub(request: Request):
 			domain = forwarded_host
 
 	# 获取请求UA
-	url_ua = request.headers.get('User-Agent', 'clash')
+	url_ua = request.headers.get('User-Agent', 'clash-verge')
 	if "clash" not in url_ua:  # 如果不是clash
-		url_ua = "clash"
+		url_ua = "clash-verge"
 	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': "inline; filename*=utf-8''SubConv"}
 
 	# 从args获取链接
@@ -144,9 +155,7 @@ async def sub(request: Request):
 
 @app.get("/proxy")
 async def proxy(request: Request, url: str):
-	url_ua = request.headers.get('User-Agent', 'clash')
-	if "clash" not in url_ua:
-		url_ua = "clash"
+	url_ua = request.headers.get('User-Agent', 'clash-verge')
 
 	# file was big so use stream
 	async def stream():
