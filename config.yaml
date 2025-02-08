@@ -8,7 +8,7 @@ HEAD:
   tcp-concurrent: false # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
   external-controller: 0.0.0.0:9090 # API 监听地址
   external-ui: ./ui # 外部用户界面 路径
-#  external-ui-name: zashboard # 自定义外部用户界面名字
+  #  external-ui-name: zashboard # 自定义外部用户界面名字
   external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
   #  secret: 'clash' # API 的访问密钥
   keep-alive-interval: 15 # 缓解移动设备耗电问题  # TCP Keep Alive 间隔,单位分钟 | 控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
@@ -49,8 +49,8 @@ HEAD:
     fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
       - geosite:private,cn
     nameserver-policy: # 使用指定的 DNS 服务器,优先于 nameserver/fallback 查询
-      geosite:category-ads-all:
-        - rcode://success
+      #      geosite:category-ads-all:
+      #      - rcode://success
       geosite:private,cn:
         - https://119.29.29.29/dns-query
         - https://120.53.53.53/dns-query
@@ -74,23 +74,26 @@ RULESET:
     #  - https://adrules.top/adrules.list,http
     - https://raw.githubusercontent.com/Cats-Team/AdRules/main/adrules.list
 
-#  - - 🛑 拦截访问
-#    - https://raw.githubusercontent.com/DustinWin/ruleset_geodata/mihomo-ruleset/ads.mrs
+  #- - 🛑 拦截访问
+  #  - https://raw.githubusercontent.com/DustinWin/ruleset_geodata/mihomo-ruleset/ads.mrs
 
-#  - - 🛑 拦截访问
-#    - '[]GEOSITE,CATEGORY-ADS-ALL'
+  #- - 🛑 拦截访问
+  #  - '[]GEOSITE,CATEGORY-ADS-ALL'
 
   - - 🚀 节点选择
     - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Proxy/Proxy.list
 
   - - 🚀 节点选择
-    - '[]OR,((GEOSITE,GEOLOCATION-!CN),(GEOSITE,GOOGLE))'
+    #  - '[]OR,((GEOSITE,GEOLOCATION-!CN),(GEOSITE,GOOGLE))'
+    - '[]GEOSITE,GEOLOCATION-!CN'
 
   - - 🎯 直连访问
-    - '[]OR,((GEOSITE,CN),(GEOIP,CN,NO-RESOLVE))'
+    #  - '[]OR,((GEOSITE,CN),(GEOIP,CN,NO-RESOLVE))'
+    - '[]GEOSITE,CN'
 
   - - 🎯 直连访问
-    - '[]OR,((GEOSITE,PRIVATE),(GEOIP,PRIVATE,NO-RESOLVE))'
+    #  - '[]OR,((GEOSITE,PRIVATE),(GEOIP,PRIVATE,NO-RESOLVE))'
+    - '[]GEOSITE,PRIVATE'
 
   - - 🐟 漏网之鱼
     - '[]FINAL'

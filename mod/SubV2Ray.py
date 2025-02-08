@@ -972,11 +972,11 @@ def RandUserAgent() -> str:
 	return userAgents[random.randint(0, len(userAgents) - 1)]
 
 
-async def proxies_info(info, args):
+def proxies_info(info, args):
 	data = yaml.safe_load(info)
-	if args['raw_data']:
+	if args.get('raw_data'):
 		data_info = {"name": f"流量{args['remaining']}/{args['total']}|{args['expire']}", "type": "http", "server": "127.0.0.1", "port": 443}
-		data['proxies'].insert(0, data_info)
+		data.get('proxies').insert(0, data_info)
 	return yaml.safe_dump(data, allow_unicode=True, sort_keys=False)
 
 
@@ -987,12 +987,12 @@ async def Sub(data, **kwargs):
 			allow_unicode=True,
 			sort_keys=False
 		)
-		proxies = await proxies_info(proxies, kwargs.get('headers'))
+		proxies = proxies_info(proxies, kwargs.get('headers'))
 	except:
 		proxies = yaml.safe_dump(
 			{"proxies": await 解析(data)},
 			allow_unicode=True,
 			sort_keys=False
 		)
-		proxies = await proxies_info(proxies, kwargs.get('headers'))
+		proxies = proxies_info(proxies, kwargs.get('headers'))
 	return proxies

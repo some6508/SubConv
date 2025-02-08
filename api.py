@@ -128,6 +128,9 @@ async def sub(request: Request):
 			try:
 				response = await client.get(url[i], headers={'User-Agent': url_ua}, follow_redirects=True)
 				if response.status_code == 200:
+					if response.text == "":
+						print("链接内容为空:", url[i])
+						continue
 					url_headers = await DeepSeek.parse_info(response.headers)
 					temp = {"链接": "{}provider?{}".format(base_url, urlencode({"url": url[i]}))}
 					if url_headers['filename']:  # 订阅名
