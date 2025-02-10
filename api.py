@@ -45,7 +45,7 @@ async def 主页():
 		html_content = "\n".join(lines)
 
 		# 在head标签内插入script标签
-		script_tag = f'<script src="script.js?v={random_number}"></script>'
+		script_tag = f'<link rel="stylesheet" href="style.css?v={random_number}">\n<script src="script.js?v={random_number}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
 	# 返回文件内容
@@ -95,7 +95,7 @@ async def sub(request: Request):
 	if "127.0.0.1" in base_url:  # 如果是本地ip
 		forwarded_host = request.headers.get("X-Forwarded-Host") or request.headers.get("X-Host", "").split(":")[0]
 		if forwarded_host:
-			base_url = f"http://{forwarded_host}/"
+			base_url = f"https://{forwarded_host}/"
 			domain = forwarded_host
 
 	# 获取请求UA
@@ -203,6 +203,6 @@ async def index(path):
 	if Path("static/" + path).exists():
 		return FileResponse("static/" + path)
 	else:
-		result = 'http://t.me/CcaeoBot'
+		result = 'https://t.me/CcaeoBot'
 		return RedirectResponse(url=result, status_code=302, headers={"Location": result})
 		# raise HTTPException(status_code=404, detail=f"！无效的请求：{path}")
