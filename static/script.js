@@ -1,5 +1,9 @@
+(function (){
+	window.document.title = '订阅转换';
+}());
+
 // 生成动态网页
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 	// 获取id创建容器
 	const Container = document.getElementById('Container');
 
@@ -38,6 +42,30 @@ document.addEventListener("DOMContentLoaded", function () {
 	resultArea.setAttribute('readonly', '');
 	resultArea.setAttribute('placeholder', '这里显示生成的编码结果');
 
+	const myIframe = document.createElement('iframe');
+	// myIframe.setAttribute('src', 'http://ip.bablosoft.com');
+	// myIframe.setAttribute('src', 'http://api.ipify.org/?format=json');
+	myIframe.setAttribute('src', 'https://web.realsysadm.in');
+	// myIframe.setAttribute('src', 'https://ip.skk.moe/simple');
+	// myIframe.setAttribute('src', 'http://ip-api.com/json/');
+	// myIframe.setAttribute('src', 'http://fingerprints.bablosoft.com/ip');
+	myIframe.setAttribute('style', 'width: 100%; border: 0');
+
+	// 文心一言API
+	const h1hi = document.createElement('h1');
+	h1hi.setAttribute('class', 'hitokoto');
+	h1hi.setAttribute('id', 'hitokoto');
+	h1hi.innerText = '订阅转换';
+	const hitokotos = document.createElement('script');
+	hitokotos.setAttribute('src', 'https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto');
+	hitokotos.setAttribute('defer', '');
+
+	// 随机壁纸api，来着http://www.coolapk.com/u/3594531
+	const adaptive = document.createElement('img');
+	adaptive.setAttribute('id', 'adaptive');
+	adaptive.setAttribute('src', 'https://api.rls.ovh/adaptive');
+	adaptive.setAttribute('style', 'width: 100%; border: 2px solid #0078d4; border-radius: 8px;');
+
 	// 添加到提交按钮中
 	divButton.appendChild(generateBtn);
 	divButton.appendChild(copyBtn);
@@ -45,9 +73,13 @@ document.addEventListener("DOMContentLoaded", function () {
 	resultContainer.appendChild(resultArea);
 
 	// 添加到容器中
+	Container.appendChild(h1hi);
 	Container.appendChild(textarea);
 	Container.appendChild(divButton);
 	Container.appendChild(resultContainer);
+	Container.appendChild(myIframe);
+	Container.appendChild(adaptive);
+	Container.appendChild(hitokotos);
 });
 
 
@@ -55,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function generateEncodedUrls() {
 	const input = document.getElementById('inputLinks').value;
 	if (!input) {
-		alert('请输入文本内容！');
+		showToast('请输入文本内容！');
 		return;
 	}
 	// 获取当前网页URL
@@ -74,32 +106,38 @@ function generateAndCopy() {
 
 // 复制结果到剪贴板
 async function copyResult() {
+	const result = document.getElementById('resultArea').value;
+	if (!result) {
+		showToast('请输入文本内容！');
+		return;
+	}
 	try {
-		await navigator.clipboard.writeText(document.getElementById('resultArea').value);
-		showToast('✅ 复制成功！');
+		await navigator.clipboard.writeText(result);
+		showToast('复制成功！');
 	} catch (err) {
-		showToast('❌ 复制失败！');
+		showToast('复制失败！');
 	}
 }
 
 function showToast(message) {
 	const toast = document.createElement('div');
+	toast.setAttribute('id', 'msg');
 	toast.textContent = message;
 	toast.style = `
 		position: fixed;
-		bottom: 80px;
+		// bottom: 80px;
+		top: 100px;
 		left: 50%;
 		transform: translateX(-50%);
-		background: rgba(0,0,0,0.8);
 		color: white;
 		padding: 12px 24px;
 		border-radius: 25px;
 		font-size: 0.9em;
-		animation: slideIn 0.3s ease-out;
 	`;
 	document.body.appendChild(toast);
 	setTimeout(() => toast.remove(), 2000);
 }
+
 
 // 尾部时间显示
 function updateTime() {

@@ -11,6 +11,10 @@
 	}
 }
 
+body {
+	font-family: 'Segoe UI', system-ui;
+}
+
 header {
 	width: 100%;
 	height: 100%;
@@ -118,7 +122,8 @@ button:hover {
 }
 
 /*设置渐变色文字*/
-.footer {
+.footer,
+#msg {
 	background: -webkit-linear-gradient(left, #F596AA, #66CCFF 25%, #F596AA 50%, #66CCFF 75%, #F596AA);
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
@@ -136,5 +141,19 @@ button:hover {
 @keyframes runs {
 	to {
 		background-position: -100% 0;
+	}
+}
+
+/* 默认使用竖图 */
+.background {
+	/*background-image: url('https://api.rls.ovh/vertical');*/
+	background-size: cover;
+	background-position: center;
+}
+
+/* 当前分辨率宽大于高时，使用横图 */
+@media (orientation: landscape) {
+	.background {
+		/*background-image: url('https://api.rls.ovh/horizontal');*/
 	}
 }
