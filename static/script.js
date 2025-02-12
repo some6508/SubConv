@@ -1,4 +1,4 @@
-(function (){
+(function () {
 	window.document.title = '订阅转换';
 }());
 
@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	resultArea.setAttribute('readonly', '');
 	resultArea.setAttribute('placeholder', '这里显示生成的编码结果');
 
+	// ip显示
 	const myIframe = document.createElement('iframe');
 	// myIframe.setAttribute('src', 'http://ip.bablosoft.com');
 	// myIframe.setAttribute('src', 'http://api.ipify.org/?format=json');
@@ -66,6 +67,13 @@ document.addEventListener("DOMContentLoaded", function() {
 	adaptive.setAttribute('src', 'https://api.rls.ovh/adaptive');
 	adaptive.setAttribute('style', 'width: 100%; border: 2px solid #0078d4; border-radius: 8px;');
 
+	// 悬浮按钮
+	const contact = document.createElement('a');
+	contact.setAttribute('href', '//github.com/some6508/SubConv');
+	contact.setAttribute('class', 'contact-btn');
+	contact.setAttribute('id', 'contact-btn');
+	contact.innerText = '项目来源';
+
 	// 添加到提交按钮中
 	divButton.appendChild(generateBtn);
 	divButton.appendChild(copyBtn);
@@ -79,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	Container.appendChild(resultContainer);
 	Container.appendChild(myIframe);
 	Container.appendChild(adaptive);
+	Container.appendChild(contact);
 	Container.appendChild(hitokotos);
 });
 
@@ -119,6 +128,7 @@ async function copyResult() {
 	}
 }
 
+// 弹窗吐司
 function showToast(message) {
 	const toast = document.createElement('div');
 	toast.setAttribute('id', 'msg');
@@ -133,6 +143,7 @@ function showToast(message) {
 		padding: 12px 24px;
 		border-radius: 25px;
 		font-size: 0.9em;
+		box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
 	`;
 	document.body.appendChild(toast);
 	setTimeout(() => toast.remove(), 2000);

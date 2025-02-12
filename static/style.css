@@ -122,8 +122,7 @@ button:hover {
 }
 
 /*设置渐变色文字*/
-.footer,
-#msg {
+.footer, #msg, .contact-btn {
 	background: -webkit-linear-gradient(left, #F596AA, #66CCFF 25%, #F596AA 50%, #66CCFF 75%, #F596AA);
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
@@ -156,4 +155,25 @@ button:hover {
 	.background {
 		/*background-image: url('https://api.rls.ovh/horizontal');*/
 	}
+}
+
+/* 悬浮按钮 */
+.contact-btn {
+	position: fixed;
+	bottom: 30px;
+	right: 30px;
+	/*background: linear-gradient(45deg, #00ff88, #00ccff);*/
+	color: white;
+	padding: 15px 25px;
+	border-radius: 30px;
+	text-decoration: none;
+	font-weight: bold;
+	box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+	transition: transform 0.3s, box-shadow 0.3s;
+	z-index: 1000;
+}
+
+.contact-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 8px 20px rgba(0, 255, 136, 0.5);
 }

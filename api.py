@@ -44,12 +44,10 @@ async def 主页():
 		lines = await f.readlines()
 		html_content = "\n".join(lines)
 
-		# 在head标签内插入script标签
-		script_tag = f'<link rel="stylesheet" href="style.css?v={random_number}">\n<script src="script.js?v={random_number}"></script>'
+		# 在head标签内插入
+		script_tag = f'<link rel="stylesheet" href="style.css?v={random_number}" /><script src="script.js?v={random_number}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
-	# 返回文件内容
-	# return FileResponse("static/index.html")
 
 
 @app.get("/provider")
@@ -205,4 +203,3 @@ async def index(path):
 	else:
 		result = 'https://t.me/CcaeoBot'
 		return RedirectResponse(url=result, status_code=302, headers={"Location": result})
-		# raise HTTPException(status_code=404, detail=f"！无效的请求：{path}")
