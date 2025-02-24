@@ -45,7 +45,7 @@ async def 主页():
 		html_content = "\n".join(lines)
 
 		# 在head标签内插入
-		script_tag = f'<link rel="stylesheet" href="style.css?v={random_number}" /><script src="script.js?v={random_number}"></script>'
+		script_tag = f'<script src="script-6038eb19.js?v={random_number}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
 
@@ -96,6 +96,9 @@ async def sub(request: Request):
 			base_url = f"https://{forwarded_host}/"
 			domain = forwarded_host
 
+	# 是否全部输出代理列表
+	all_list = args.get("all", False)
+
 	# 获取请求UA
 	url_ua = request.headers.get('User-Agent', 'clash-verge')
 	if "clash" not in url_ua:  # 如果不是clash
@@ -145,9 +148,10 @@ async def sub(request: Request):
 				print(f"错误来源: {e.__class__.__name__}")
 				print(f"错误信息: {str(e)}")
 		if data:
-			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url)
+			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url, 列表=all_list)
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
+			headers['Content-Disposition'] = headers['Content-Disposition'] + f"-{current_time}"
 			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
 		else:
 			raise HTTPException(status_code=404, detail="请求出现错误")

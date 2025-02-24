@@ -4,7 +4,7 @@ from . import config
 from urllib.parse import urlparse, urlencode
 
 
-async def pack(数据: list, 节点: list, 域名: str):
+async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 	result = {}
 	result.update(config.configInstance.HEAD)
 
@@ -15,30 +15,39 @@ async def pack(数据: list, 节点: list, 域名: str):
 			proxies["proxies"].append(i)
 		result.update(proxies)
 
-	# 添加网络订阅
-	providers = {"proxy-providers": {}}
-	if 数据:
-		for i in range(len(数据)):
-			providers["proxy-providers"].update({
-				"{}".format(数据[i]["订阅"]): {
-					"type": "http",
-					"url": 数据[i]["链接"],
-					"interval": 1800,
-					"path": f"./sub/{i:02}.yaml",
-					"health-check": {
-						"enable": True,
-						"interval": 60,
-						"timeout": 5000,
-						"expected-status": "204/200",
-						"url": config.configInstance.TEST_URL
-					},
-					"override": {
-						"additional-prefix": f"{i:02}@"
-						# "additional-suffix": f"@{u}"
+	if not 列表:
+		# 添加网络订阅
+		providers = {"proxy-providers": {}}
+		if 数据:
+			for i in range(len(数据)):
+				providers["proxy-providers"].update({
+					"{}".format(数据[i]["订阅"]): {
+						"type": "http",
+						"url": 数据[i]["链接"],
+						"interval": 1800,
+						"path": f'./sub/{数据[i]["订阅"].split("@")[0]}.yaml',
+						"health-check": {
+							"enable": True,
+							"interval": 300,
+							"timeout": 5000,
+							"expected-status": "204/200",
+							"url": config.configInstance.TEST_URL
+						},
+						"override": {
+							"additional-prefix": f'{数据[i]["订阅"].split("@")[0]}@'
+							# "additional-suffix": f"@{u}"
+						}
 					}
-				}
-			})
-		result.update(providers)
+				})
+			result.update(providers)
+	else:
+		if 数据:
+			for i in range(len(数据)):
+				内容 = yaml.load(数据[i]["数据"], Loader=yaml.FullLoader).get("proxies")
+				for n in 内容:
+					if n not in proxies["proxies"]:
+						proxies["proxies"].append(n)
+			result.update(proxies)
 
 	# 添加分组
 	proxyGroups = {
@@ -52,8 +61,9 @@ async def pack(数据: list, 节点: list, 域名: str):
 	}
 	for i in ["♻️ 自动选择", "☁️ 故障转移", "🔮 负载均衡", "🖲️ 手动选择"]:
 		proxySelect["proxies"].append(i)
-	for i in range(len(数据)):
-		proxySelect["proxies"].append("🏖 " + 数据[i]["订阅"])
+	if not 列表:
+		for i in range(len(数据)):
+			proxySelect["proxies"].append("🏖 " + 数据[i]["订阅"])
 	proxySelect["proxies"].append("DIRECT")
 	proxyGroups["proxy-groups"].append(proxySelect)
 
@@ -64,8 +74,7 @@ async def pack(数据: list, 节点: list, 域名: str):
 		"type": "url-test",
 		"include-all": True,
 		"expected-status": "204/200",
-		"interval": 60,
-		"tolerance": 50,
+		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
 	proxyGroup.append({
@@ -74,8 +83,7 @@ async def pack(数据: list, 节点: list, 域名: str):
 		"type": "fallback",
 		"include-all": True,
 		"expected-status": "204/200",
-		"interval": 60,
-		"tolerance": 50,
+		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
 	proxyGroup.append({
@@ -85,8 +93,7 @@ async def pack(数据: list, 节点: list, 域名: str):
 		"strategy": "consistent-hashing",
 		"include-all": True,
 		"expected-status": "204/200",
-		"interval": 60,
-		"tolerance": 50,
+		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
 	proxyGroup.append({
@@ -130,20 +137,20 @@ async def pack(数据: list, 节点: list, 域名: str):
 		]
 	})
 
-	for i in range(len(数据)):
-		proxyGroup.append({
-			"name": "🏖 {}".format(数据[i]["订阅"]),
-			"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static_1.png",
-			"type": "load-balance",
-			"strategy": "consistent-hashing",
-			"expected-status": "204/200",
-			"interval": 60,
-			"tolerance": 50,
-			"url": config.configInstance.TEST_URL,
-			"use": [
-				数据[i]["订阅"]
-			]
-		})
+	if not 列表:
+		for i in range(len(数据)):
+			proxyGroup.append({
+				"name": "🏖 {}".format(数据[i]["订阅"]),
+				"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static_1.png",
+				"type": "url-test",
+				# "strategy": "consistent-hashing",
+				"expected-status": "204/200",
+				"interval": 300,
+				"url": config.configInstance.TEST_URL,
+				"use": [
+					数据[i]["订阅"]
+				]
+			})
 
 	# 添加分组合集
 	proxyGroups["proxy-groups"].extend(proxyGroup)

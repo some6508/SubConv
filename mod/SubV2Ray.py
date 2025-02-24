@@ -975,11 +975,20 @@ def RandUserAgent() -> str:
 def proxies_info(info, args):
 	data = yaml.safe_load(info)
 	num = len(data.get('proxies'))
+	proxies = []
+	n = 0
 	proxies_num = {"name": f"节点共用{num}个", "type": "http", "server": "127.0.0.1", "port": 443}
-	data.get('proxies').insert(0, proxies_num)
+	proxies.append(proxies_num)
+	# data.get('proxies').insert(0, proxies_num)
 	if args.get('raw_data'):
 		data_info = {"name": f"流量{args['remaining']}/{args['total']}|{args['expire']}", "type": "http", "server": "127.0.0.1", "port": 443}
-		data.get('proxies').insert(0, data_info)
+		proxies.append(data_info)
+	# data.get('proxies').insert(0, data_info)
+	for proxy in data.get('proxies', []):
+		n += 1
+		proxy['name'] = f"[{n}]{proxy.get('name')}"
+		proxies.append(proxy)
+	data['proxies'] = proxies
 	return yaml.safe_dump(data, allow_unicode=True, sort_keys=False)
 
 
