@@ -1,0 +1,13 @@
+version: '3'
+services:
+  subconv:
+    # 指定容器名称
+    container_name: subconv
+    # 重启策略（自动恢复服务）
+    restart: unless-stopped
+    # 端口映射 主机端口:容器端口
+    ports:
+      - "8080:8080"
+    # 挂载文件
+    volumes:
+      - ./config.yml:/app/config.yml

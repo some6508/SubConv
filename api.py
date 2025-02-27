@@ -2,20 +2,30 @@
 # coding=utf-8
 import re
 import httpx
-import random
+import logging
 import uvicorn
 import argparse
 import aiofiles
 from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlencode
-from fastapi import FastAPI, HTTPException
-from fastapi.requests import Request
+from logging.handlers import RotatingFileHandler
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse, RedirectResponse, HTMLResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse, RedirectResponse, HTMLResponse, JSONResponse
 
 # 自定义
 from mod import SubV2Ray, SubPack, DeepSeek
+
+# 配置根日志记录器
+logging.basicConfig(
+	level=logging.DEBUG,
+	format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+	handlers=[
+		RotatingFileHandler(filename='static/ccaeo.log', maxBytes=1 * 1024 * 1024, backupCount=3),
+		logging.StreamHandler()
+	]
+)
 
 # 开始运行
 if __name__ == "__main__":
@@ -28,7 +38,7 @@ if __name__ == "__main__":
 
 	module_name = __name__.split(".")[0]
 	# 运行
-	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4)
+	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4, log_config=None)
 
 # 服务器端
 app = FastAPI()
@@ -36,16 +46,29 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# 全局异常捕获中间件
+@app.middleware("http")
+async def catch_exceptions(request: Request, call_next):
+	try:
+		return await call_next(request)
+	except Exception as e:
+		logging.error(f"出现异常: {str(e)}", exc_info=True)
+		return JSONResponse(
+			status_code=500,
+			content={"error": "出现错误"}
+		)
+
+
 @app.get("/")
 async def 主页():
 	# 生成随机数
-	random_number = random.random()
+	current_time = datetime.now().isoformat()
 	async with aiofiles.open("static/index.html", "r", encoding="utf-8") as f:
 		lines = await f.readlines()
 		html_content = "\n".join(lines)
 
 		# 在head标签内插入
-		script_tag = f'<script src="script-6038eb19.js?v={random_number}"></script>'
+		script_tag = f'<script src="script-6038eb19.js?t={current_time}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
 
@@ -183,9 +206,9 @@ async def proxy(request: Request, url: str):
 
 
 @app.get("/日志")
-async def 日志(request: Request):
+async def log_file(request: Request):
 	headers = request.headers
-	log_file_path = Path("/www/wwwlogs/python/SubConv/error.log")
+	log_file_path = Path("static/ccaeo.log")
 
 	try:
 		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
@@ -203,6 +226,9 @@ async def 日志(request: Request):
 @app.get("/{path:path}")
 async def index(path):
 	if Path("static/" + path).exists():
+		# if '.js' in path:
+		# result = DeepSeek.dynamic_obfuscate("static/" + path)
+		# return Response(content=result, headers={'Content-Type': 'application/javascript'})
 		return FileResponse("static/" + path)
 	else:
 		result = 'https://t.me/CcaeoBot'

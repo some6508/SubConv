@@ -1,6 +1,8 @@
+import random
+import base64
+import string
 import urllib.parse
 from datetime import datetime
-
 
 async def parse_info(headers):
 	"""增强版流量信息解析器，支持无限流量和RFC编码"""
@@ -131,3 +133,32 @@ async def parse_info(headers):
 		'expire': format_expire(expire),
 		'raw_data': info
 	}
+
+
+def random_string(length=8):
+	"""生成随机变量名"""
+	chars = string.ascii_letters + string.digits
+	return ''.join(random.choices(chars, k=length))
+
+
+def dynamic_obfuscate(js_code):
+	with open(js_code, 'r') as f:
+		js_code = f.read()
+	# Base64编码原始代码
+	encoded_js = base64.b64encode(js_code.encode()).decode()
+
+	# 生成随机变量名
+	var_name = random_string()
+
+	# 构建混淆后的JS代码
+	obfuscated = [
+		"(function(){",
+		f"  var {var_name}=['" + encoded_js + "'];",
+		f"  var decodedCode = new TextDecoder('utf8').decode(Uint8Array.from(atob({var_name}), c => c.charCodeAt(0)));",
+		"  if (typeof console !== 'undefined') {",
+		"	setInterval(function(){ debugger; }, 1000);",
+		"  }",
+		"  new Function(decodedCode)();",
+		"})();"
+	]
+	return '\n'.join(obfuscated)

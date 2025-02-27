@@ -142,8 +142,8 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 			proxyGroup.append({
 				"name": "🏖 {}".format(数据[i]["订阅"]),
 				"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static_1.png",
-				"type": "url-test",
-				# "strategy": "consistent-hashing",
+				"type": "load-balance",
+				"strategy": "consistent-hashing",
 				"expected-status": "204/200",
 				"interval": 300,
 				"url": config.configInstance.TEST_URL,

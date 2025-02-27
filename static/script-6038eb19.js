@@ -27,6 +27,7 @@ addGlobalStyle(`
 	--primary-color: ${getRandomColor()};  /* #F596AA */
 	--secondary-color: ${getRandomColor()};  /* #66CCFF */
 	--secon-color : ${getRandomColor()};  /* #00FF88 */
+	--angle: ${angles()};
 }
 
 /* 渐变背景 */
@@ -35,9 +36,10 @@ body {
 	width: 100%;
 	height: 100vh;
 	color: #fff;
-	background: linear-gradient(-45deg, #ee7752, ${getRandomColor()}, #23a6d5, #23d5ab);
+	background: linear-gradient(var(--angle), #ee7752, ${getRandomColor()}, #23a6d5, #23d5ab);
 	background-size: 400% 400%;
 	animation: gradient 5s ease infinite;
+	transition: all 1s ease;
 }
 @keyframes gradient {
 	0% { background-position: 0% 50%; }
@@ -127,7 +129,7 @@ button:hover {
 
 /*设置渐变色文字*/
 /* animation: hi 1s, runs 2s infinite linear; */
-.footer, .toast, .contact-btn, .hitokoto, .ip-info {
+.footer, .toast, .contact-btn, .hitokoto, .ip-info, .adaptive {
 	font-weight: bold;
 	background: -webkit-linear-gradient(left, var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color));
 	background-size: 200% 100%;
@@ -244,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	const myIframe = document.createElement('p');
 	setAdd('ip-info', myIframe);
 	myIframe.innerText = '正在获取IP地址…'
-	myIframe.setAttribute('style', 'width: 100%;');
+	myIframe.setAttribute('style', 'height: 100%;');
 
 	// 文心一言API
 	const h1hi = document.createElement('h1');
@@ -461,14 +463,14 @@ function randomColor() {
 	return "box-shadow: 0 5px 15px rgba(" + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + "," + "0.5" + ");";
 }
 
-// 随机背景颜色
+// 随机颜色
 function getRandomColor() {
-	var letters = '0123456789ABCDEF';
-	var color = '#';
-	for (var i = 0; i < 6; i++) {
-		color += letters[Math.floor(Math.random() * 16)];
-	}
-	return color;
+	return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+}
+
+// 随机角度
+function angles() {
+	return `${Math.floor(Math.random() * 360)}deg`;
 }
 
 async function adaptive() {
@@ -482,7 +484,7 @@ async function adaptive() {
 	// 加载随机壁纸
 	const img = document.getElementById('adaptive');
 
-	img.src = 'https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png?';
+	img.src = 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Flamingo.png';
 	// 加载逻辑
 	for (const url of urls) {
 		try {
@@ -502,8 +504,14 @@ async function adaptive() {
 	}
 }
 
+function updateGradient() {
+	document.documentElement.style.setProperty('--angle', angles());
+}
+
 // 页面加载完成
 window.addEventListener("load", async () => {
-
 	adaptive();
+	// 点击页面切换新渐变
+	document.body.addEventListener('click', updateGradient);
 });
+
