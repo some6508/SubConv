@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.11.9-alpine3.20 AS builder
+FROM --platform=$BUILDPLATFORM python:3.11.9-alpine3.18 AS builder
 LABEL name="subconv"
 
 # 设置工作目录

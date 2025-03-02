@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # coding=utf-8
 import re
+import os
 import httpx
-import logging
+import random
 import uvicorn
+import logging
+import tempfile
 import argparse
 import aiofiles
 from pathlib import Path
@@ -14,18 +17,31 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response, StreamingResponse, RedirectResponse, HTMLResponse, JSONResponse
 
+
 # 自定义
 from mod import SubV2Ray, SubPack, DeepSeek
+run_name = 'SubConv'
+
+# 动态获取系统临时目录
+log_temp_dir = os.path.join(tempfile.gettempdir(), run_name)
+log_filename = os.path.join(log_temp_dir, 'ccaeo.log')
+# 确保目录存在
+os.makedirs(log_temp_dir, exist_ok=True)
 
 # 配置根日志记录器
 logging.basicConfig(
 	level=logging.INFO,
 	format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-	handlers=[
-		RotatingFileHandler(filename='static/ccaeo.log', maxBytes=1 * 1024 * 1024, backupCount=3),
+	handlers = [
+		RotatingFileHandler(
+			filename=log_filename,
+			maxBytes=1*1024*1024,
+			backupCount=3
+		),
 		logging.StreamHandler()
 	]
 )
+
 
 # 开始运行
 if __name__ == "__main__":
@@ -36,7 +52,12 @@ if __name__ == "__main__":
 	parser.add_argument("--version", "-V", action="version", version="版本: v1.0.0（20250120）")
 	args = parser.parse_args()
 
+	# 脚本名
 	module_name = __name__.split(".")[0]
+
+	logging.info(f"开始运行: {run_name}")
+	logging.info(f"IP:端口: {args.host}:{args.port}")
+	logging.info(f"日志文件: {log_filename}")
 	# 运行
 	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4, log_config=None)
 
@@ -44,7 +65,6 @@ if __name__ == "__main__":
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
 
 # 全局异常捕获中间件
 @app.middleware("http")
@@ -55,19 +75,21 @@ async def catch_exceptions(request: Request, call_next):
 		logging.error(f"出现异常: {str(e)}", exc_info=True)
 		return JSONResponse(
 			status_code=500,
-			content={"error": "出现错误"}
+			content={"error": "服务器内部错误"}
 		)
 
 
 @app.get("/")
 async def 主页():
 	# 生成随机数
+	random_number = random.random()
 	current_time = datetime.now().isoformat()
 	async with aiofiles.open("static/index.html", "r", encoding="utf-8") as f:
 		lines = await f.readlines()
 		html_content = "\n".join(lines)
 
 		# 在head标签内插入
+		# script_tag = f'<script src="script-6038eb19.js?v={random_number}"></script>'
 		script_tag = f'<script src="script-6038eb19.js?t={current_time}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
@@ -90,7 +112,7 @@ async def provider(request: Request):
 				result = await SubV2Ray.Sub(resp.text, headers=Headers)
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
-			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+			result = f"# 由{run_name}一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由{run_name}一键生成"
 			if 'subscription-userinfo' in resp.headers:  # 流量及日期信息
 				headers['subscription-userinfo'] = resp.headers['subscription-userinfo']
 			if 'Content-Disposition' in resp.headers:  # 订阅名
@@ -126,7 +148,7 @@ async def sub(request: Request):
 	url_ua = request.headers.get('User-Agent', 'clash-verge')
 	if "clash" not in url_ua:  # 如果不是clash
 		url_ua = "clash-verge"
-	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': "inline; filename*=utf-8''SubConv"}
+	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': f"inline; filename*=utf-8''{run_name}"}
 
 	# 从args获取链接
 	url = args.get("url", "")
@@ -175,7 +197,7 @@ async def sub(request: Request):
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
 			headers['Content-Disposition'] = headers['Content-Disposition'] + f"-{current_time}"
-			result = f"# 由SubConv一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由SubConv一键生成"
+			result = f"# 由{run_name}一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由{run_name}一键生成"
 		else:
 			raise HTTPException(status_code=404, detail="请求出现错误")
 	return Response(content=result, headers=headers)
@@ -206,9 +228,9 @@ async def proxy(request: Request, url: str):
 
 
 @app.get("/日志")
-async def log_file(request: Request):
+async def 日志(request: Request):
 	headers = request.headers
-	log_file_path = Path("static/ccaeo.log")
+	log_file_path = Path(log_filename)
 
 	try:
 		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:

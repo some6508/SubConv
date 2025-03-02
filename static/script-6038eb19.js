@@ -4,14 +4,10 @@
 	window.document.title = '订阅转换' + now.toISOString();
 
 	// 添加图标
-	const slink = document.createElement('link');
-	slink.rel = "shortcut icon";
-	slink.href="https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png?";
-	const tlink = document.createElement('link');
-	tlink.rel = "apple-touch-icon";
-	tlink.href="https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png?";
-	document.head.appendChild(slink);
-	document.head.appendChild(tlink);
+	const link = document.createElement('link');
+	link.rel = "icon";
+	link.href="https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png?";
+	document.head.appendChild(link);
 }());
 
 // 添加style
@@ -128,16 +124,15 @@ button:hover {
 }
 
 /*设置渐变色文字*/
-/* animation: hi 1s, runs 2s infinite linear; */
 .footer, .toast, .contact-btn, .hitokoto, .ip-info, .adaptive {
 	font-weight: bold;
 	background: -webkit-linear-gradient(left, var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color));
 	background-size: 200% 100%;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
-	animation: gradientAnimation 3s linear infinite;
+	-webkit-animation: gradientAnimation 3s linear infinite;
 }
-@keyframes gradientAnimation {
+@-webkit-keyframes gradientAnimation {
 	0% { background-position: 100% 50%; }
 	100% { background-position: 0% 50%; }
 }
@@ -248,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	myIframe.innerText = '正在获取IP地址…'
 	myIframe.setAttribute('style', 'height: 100%;');
 
-	// 文心一言API
+	// 文心一言API https://v1.jinrishici.com/all.txt
 	const h1hi = document.createElement('h1');
 	setAdd('hitokoto', h1hi);
 	h1hi.innerText = '订阅转换';
@@ -418,9 +413,7 @@ async function infoIP() {
 	const urls = [
 		'https://web.realsysadm.in?Z79362604080Q1',
 		'http://ip.bablosoft.com?Z79362604080Q1',
-		'http://api.ipify.org/?format=json',
 		'http://api.ipify.org?Z79362604080Q1',
-		'http://ip-api.com/json/?lang=zh-CN',
 		'http://fingerprints.bablosoft.com/ip?Z79362604080Q1',
 		'https://ipwho.is?Z79362604080Q1',
 		'http://eth0.me?Z79362604080Q1',
@@ -428,6 +421,8 @@ async function infoIP() {
 		'http://checkip.amazonaws.com?Z79362604080Q1',
 		'http://v4.ident.me?Z79362604080Q1',
 		'http://freeze.na4u.ru/ip.php?Z79362604080Q1',
+		'http://ip-api.com/json/?lang=zh-CN',
+		'http://api.ipify.org/?format=json',
 		'https://ip.skk.moe/simple',
 		'https://ping0.cc/geo/jsonp'
 	];
@@ -478,7 +473,10 @@ async function adaptive() {
 		'https://api.rls.ovh/adaptive',
 		'https://t.alcy.cc/ycy',
 		'https://image.anosu.top/pixiv',
-		'https://moe.jitsu.top/img'
+		'https://moe.jitsu.top/img',
+		'https://api.neix.in/random/',
+		'https://api.yimian.xyz/img',
+		'https://www.loliapi.com/acg/'
 	];
 
 	// 加载随机壁纸
@@ -514,4 +512,3 @@ window.addEventListener("load", async () => {
 	// 点击页面切换新渐变
 	document.body.addEventListener('click', updateGradient);
 });
-
