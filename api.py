@@ -72,7 +72,7 @@ async def catch_exceptions(request: Request, call_next):
 	try:
 		return await call_next(request)
 	except Exception as e:
-		logging.error(f"出现异常: {str(e)}", exc_info=True)
+		logging.error(f"出现异常: {str(e)}")
 		return JSONResponse(
 			status_code=500,
 			content={"error": "服务器内部错误"}
@@ -93,6 +93,11 @@ async def 主页():
 		script_tag = f'<script src="script-6038eb19.js?t={current_time}"></script>'
 		html_content = html_content.replace('</head>', script_tag + '</head>')
 		return HTMLResponse(content=html_content)
+
+
+@app.get("/robots.txt")
+async def robots():
+	return Response(content="User-agent: *\nDisallow: /", media_type="text/plain")
 
 
 @app.get("/provider")
@@ -121,9 +126,9 @@ async def provider(request: Request):
 				pattern = r';\s*filename=[^;]*'
 				headers['Content-Disposition'] = re.sub(pattern, '', headers['Content-Disposition'])
 		except Exception as e:
-			print(f"请求链接: {url}")
-			print(f"错误来源: {e.__class__.__name__}")
-			print(f"错误信息: {str(e)}")
+			logging.error(f"请求链接: {url}")
+			logging.error(f"错误来源: {e.__class__.__name__}")
+			logging.error(f"错误信息: {str(e)}")
 			raise HTTPException(status_code=404, detail="出现请求错误")
 	return Response(content=result, headers=headers)
 
@@ -175,7 +180,7 @@ async def sub(request: Request):
 				response = await client.get(url[i], headers={'User-Agent': url_ua}, follow_redirects=True)
 				if response.status_code == 200:
 					if response.text == "":
-						print("链接内容为空:", url[i])
+						logging.warning("链接内容为空:", url[i])
 						continue
 					url_headers = await DeepSeek.parse_info(response.headers)
 					temp = {"链接": "{}provider?{}".format(base_url, urlencode({"url": url[i]}))}
@@ -187,11 +192,11 @@ async def sub(request: Request):
 					temp["数据"] = await SubV2Ray.Sub(response.text, headers=url_headers)
 					data.append(temp)
 				else:
-					print(f"请求失败 {response.status_code}: {url[i]}")
+					logging.warning(f"请求失败 {response.status_code}: {url[i]}")
 			except Exception as e:
-				print(f"请求链接: {url[i]}")
-				print(f"错误来源: {e.__class__.__name__}")
-				print(f"错误信息: {str(e)}")
+				logging.error(f"请求链接: {url[i]}")
+				logging.error(f"错误来源: {e.__class__.__name__}")
+				logging.error(f"错误信息: {str(e)}")
 		if data:
 			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url, 列表=all_list)
 			# 获取当前时间并格式化

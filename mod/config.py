@@ -1,4 +1,5 @@
 import sys
+import logging
 from pathlib import Path
 from typing import List, Tuple
 from pydantic import BaseModel
@@ -12,7 +13,7 @@ class Group(BaseModel):
 	rule: bool = True
 	manual: bool = False
 	prior: str = None
-	# regex: str = None
+# regex: str = None
 
 
 class Config(YamlBaseSettings):
@@ -34,7 +35,7 @@ try:
 				raise FileNotFoundError
 	configInstance = Config("config.yaml")
 except FileNotFoundError:
-	print(f"没有配置文件 {sys.argv[0]}")
+	logging.error(f"没有配置文件 {sys.argv[0]}")
 	sys.exit(1)
 except Exception as e:
 	print(f"Error: {e}")

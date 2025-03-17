@@ -29,8 +29,6 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 						"health-check": {
 							"enable": True,
 							"interval": 300,
-							"timeout": 5000,
-							"expected-status": "204/200",
 							"url": config.configInstance.TEST_URL
 						},
 						"override": {
@@ -73,7 +71,6 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 		"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Auto.png",
 		"type": "url-test",
 		"include-all": True,
-		"expected-status": "204/200",
 		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
@@ -82,7 +79,6 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 		"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Available.png",
 		"type": "fallback",
 		"include-all": True,
-		"expected-status": "204/200",
 		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
@@ -90,9 +86,7 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 		"name": "🔮 负载均衡",
 		"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Round_Robin.png",
 		"type": "load-balance",
-		"strategy": "consistent-hashing",
 		"include-all": True,
-		"expected-status": "204/200",
 		"interval": 300,
 		"url": config.configInstance.TEST_URL
 	})
@@ -142,11 +136,7 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 			proxyGroup.append({
 				"name": "🏖 {}".format(数据[i]["订阅"]),
 				"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static_1.png",
-				"type": "fallback",
-				# "strategy": "consistent-hashing",
-				"expected-status": "204/200",
-				"interval": 300,
-				"url": config.configInstance.TEST_URL,
+				"type": "select", # load-balance fallback
 				"use": [
 					数据[i]["订阅"]
 				]

@@ -9,8 +9,8 @@ HEAD:
   external-controller: 0.0.0.0:9090 # API 监听地址
   external-ui: ./ui # 外部用户界面 路径
   external-ui-url: https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
-#  external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
-#  secret: 'clash' # API 的访问密钥
+  #  external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
+  #  secret: 'clash' # API 的访问密钥
   keep-alive-interval: 15 # 缓解移动设备耗电问题  # TCP Keep Alive 间隔,单位分钟 | 控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
   global-client-fingerprint: chrome # 全局客户端指纹 # 随机指纹
   geodata-mode: false # GEOIP 数据模式,更改 geoip 使用文件,mmdb 或者 dat,可选,true 为 dat
@@ -30,8 +30,8 @@ HEAD:
   # 代理模式
   tun:
     enable: true # 启用 tun
-    stack: system  # or 'gvisor'
-    dns-hijack:
+    stack: system # or 'gvisor'
+    dns-hijack: # dns 劫持，将匹配到的连接导入内部 dns 模块
       - any:53
       - tcp://any:53
     auto-route: true # 自动设置全局路由，可以自动将全局流量路由进入 tun 网卡。
@@ -41,17 +41,19 @@ HEAD:
   # DNS设置
   dns:
     enable: true # 关闭将使用系统 DNS
-    listen: 0.0.0.0:53 # 开启 DNS 服务器监听
+    listen: 0.0.0.0:1053 # 开启 DNS 服务器监听
     ipv6: false # false 将返回 AAAA 的空结果
+    use-hosts: true # 是否回应配置中的 hosts，默认 true
+    use-system-hosts: true # 是否查询系统 hosts，默认 true
     enhanced-mode: fake-ip  # mihomo 的 DNS 处理模式 redir-host / fake-ip
     #    fake-ip-filter-mode: blacklist # 可选 blacklist/whitelist，默认blacklist，whitelist 即只有匹配成功才返回 fake-ip
     fake-ip-range: 198.18.0.0/15  # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
     # fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
     # - geosite:cn
     nameserver-policy: # 使用指定的 DNS 服务器,优先于 nameserver/fallback 查询
-#      geosite:category-ads-all:
-#      - rcode://success
-      rule-set:Advertising,adrules:
+      geosite:category-ads-all:
+        - rcode://success
+      rule-set:adrules:
         - rcode://success
       geosite:cn,private:
         - https://doh.pub/dns-query
@@ -64,13 +66,13 @@ HEAD:
 
 
 # 测速链接
-TEST_URL: http://cp.cloudflare.com/
+TEST_URL: http://cp.cloudflare.com
 
 # 规则
 RULESET:
 
-  - - 🛑 拦截访问
-    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising.list
+  #- - 🛑 拦截访问
+  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising.list
 
   - - 🛑 拦截访问
     #  - https://adrules.top/adrules.list,http
@@ -79,30 +81,33 @@ RULESET:
   #- - 🛑 拦截访问
   #  - https://raw.githubusercontent.com/DustinWin/ruleset_geodata/mihomo-ruleset/ads.mrs
 
-  #- - 🛑 拦截访问
-  #  - '[]GEOSITE,CATEGORY-ADS-ALL'
+  - - 🛑 拦截访问
+    - '[]GEOSITE,CATEGORY-ADS-ALL'
 
   #- - 🛑 拦截访问
   #  - https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblockmihomo.yaml
 
-  - - 🎯 直连访问
-    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.list
+  #- - 🎯 直连访问
+  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.list
 
-  - - 🚀 节点选择
-    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list
+  #- - 🚀 节点选择
+  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list
 
   - - 🚀 节点选择
     - '[]GEOSITE,GEOLOCATION-!CN'
 
-  - - 🎯 直连访问
-    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaIPs/ChinaIPs.list
+  #- - 🎯 直连访问
+  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaIPs/ChinaIPs.list
 
   - - 🎯 直连访问
-    #  - '[]OR,((GEOSITE,CN),(GEOIP,CN))'
+    #  - '[]OR,((GEOSITE,CN),(GEOIP,CN,no-resolve))'
     - '[]GEOSITE,CN'
 
   - - 🎯 直连访问
-    - '[]GEOIP,CN'
+    - '[]GEOIP,LAN,no-resolve,'
+
+  - - 🎯 直连访问
+    - '[]GEOIP,CN,no-resolve,'
 
   - - 🐟 漏网之鱼
     - '[]FINAL'

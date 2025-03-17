@@ -1,4 +1,4 @@
-// 加载时添加
+// HTML 加载时运行
 (function () {
 	const now = new Date(); // 获取当前时间（基于用户本地时区）
 	window.document.title = '订阅转换' + now.toISOString();
@@ -6,33 +6,57 @@
 	// 添加图标
 	const link = document.createElement('link');
 	link.rel = "icon";
-	link.href="https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png?";
+	link.type = "svg";
+	link.sizes = "any";
+	// link.href = "https://www.gstatic.cn/images/branding/product/2x/google_cloud_64dp.png";
+	link.href = `https://icons.qweather.com/assets/icons/${getRandomNumber(1001, 1089)}.svg`;
 	document.head.appendChild(link);
+	const idTime = localStorage.getItem('idTime');
+	if (!idTime) {
+		localStorage.setItem('idTime', now.toISOString());
+	}
 }());
 
 // 添加style
 function addGlobalStyle(css) {
 	const style = document.createElement('style');
 	style.textContent = css; // 更现代的写法，兼容非IE
+	// 添加到head
 	document.head.appendChild(style);
 }
 
 addGlobalStyle(`
 /* 全局变量 */
 :root {
-	--primary-color: ${getRandomColor()};  /* #F596AA */
-	--secondary-color: ${getRandomColor()};  /* #66CCFF */
-	--secon-color : ${getRandomColor()};  /* #00FF88 */
-	--angle: ${angles()};
+	--color-a: #F596AA;
+	--color-b: #66CCFF;
+	--color-c: #00FF88;
+	--angle: ${angles()};  /* 随机渐变角度 */
+	--color-body: ${generateRandomColors(5)};  /* 随机渐变颜色 */
+}
+
+/* 淡入效果 */
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+/* 应用动画到所有元素 */
+* {
+	animation: fadeIn 1s ease-in-out;
+}
+
+* {
+	margin: 0;
+	padding: 0;
 }
 
 /* 渐变背景 */
 body {
-	margin: 0;
 	width: 100%;
-	height: 100vh;
-	color: #fff;
-	background: linear-gradient(var(--angle), #ee7752, ${getRandomColor()}, #23a6d5, #23d5ab);
+	height: 100%;
+	color: white;
+	text-align: center;
+	background: linear-gradient(var(--angle), var(--color-body));
 	background-size: 400% 400%;
 	animation: gradient 5s ease infinite;
 	transition: all 1s ease;
@@ -41,12 +65,6 @@ body {
 	0% { background-position: 0% 50%; }
 	50% { background-position: 100% 50%; }
 	100% { background-position: 0% 50%; }
-}
-
-header {
-	width: 100%;
-	height: 100%;
-	text-align: center;
 }
 
 #Container {
@@ -124,17 +142,23 @@ button:hover {
 }
 
 /*设置渐变色文字*/
-.footer, .toast, .contact-btn, .hitokoto, .ip-info, .adaptive {
-	font-weight: bold;
-	background: -webkit-linear-gradient(left, var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color), var(--secondary-color), var(--secon-color), var(--primary-color));
-	background-size: 200% 100%;
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
+.footer, .toast, .contact-btn, .hitokoto, .ip-info, .adaptive, .popup {
+	font-weight: bold;  /* 字体加粗 */
+	background: -webkit-linear-gradient(-45deg, ${generateRandomColors(5,2)});
+	background: -moz-linear-gradient(-45deg, ${generateRandomColors(5,2)});
+	background: -linear-gradient(-45deg, ${generateRandomColors(5,2)});
+	background-size: 200% 200%;
+	background-clip: text;  /* 将背景裁剪为文字形状 */
+	color: transparent;  /* 文字颜色透明（重要：让背景可见） */
+	animation: gradientAnimation 3s linear infinite;
+	-moz-animation: gradientAnimation 3s linear infinite;
 	-webkit-animation: gradientAnimation 3s linear infinite;
+	-webkit-background-clip: text;  /* WebKit增强背景裁剪效果 */
+	-webkit-text-fill-color: transparent;  /* WebKit浏览器文字透明 */
 }
-@-webkit-keyframes gradientAnimation {
-	0% { background-position: 100% 50%; }
-	100% { background-position: 0% 50%; }
+@keyframes gradientAnimation {
+	0% { background-position: 100% 100%; }
+	100% { background-position: 0% 0%; }
 }
 
 /* 默认使用竖图 */
@@ -142,6 +166,7 @@ button:hover {
 	/*background-image: url('https://api.rls.ovh/vertical');*/
 	background-size: cover;
 	background-position: center;
+	z-index: -1;
 }
 /* 当前分辨率宽大于高时，使用横图 */
 @media (orientation: landscape) {
@@ -153,8 +178,8 @@ button:hover {
 /* 悬浮按钮 */
 .contact-btn {
 	position: fixed;
-	bottom: 30px;
-	right: 30px;
+	bottom: 40px;
+	right: 20px;
 	color: white;
 	padding: 15px 25px;
 	border-radius: 30px;
@@ -162,22 +187,42 @@ button:hover {
 	font-weight: bold;
 	${randomColor()}
 	transition: transform 0.3s, box-shadow 0.3s;
-	z-index: 1000;
 }
 .contact-btn:hover {
 	transform: translateY(-3px);
 	${randomColor()}
 }
 
+/* 旋转效果 */
+@keyframes rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+/* 滑动效果 */
+@keyframes slideInFromLeft {
+	from { transform: translateX(100%); }
+	to { transform: trans; }
+}
+/* 缩放效果 */
+@keyframes scale {
+	0% { transform: scale(1); }
+	50% { transform: scale(1.5); }
+	100% { transform: scale(1); }
+}
+/* 弹跳效果 */
+@keyframes bounce {
+	0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+	40% { transform: translateY(-30px); }
+	60% { transform: translateY(-15px); }
+}
 `);
 
-
-// HTML 文档被加载和解析完成后执行的代码
+// HTML 被加载和解析完成后执行的代码
 document.addEventListener("DOMContentLoaded", function() {
 
 	// 创建头部内容
 	const header = document.createElement('header');
-	setAdd('header', header);
+	setAdd('header', header);  // 设置id和class
 	const Container = document.createElement('div');
 	setAdd('Container', Container);
 
@@ -241,23 +286,19 @@ document.addEventListener("DOMContentLoaded", function() {
 	const myIframe = document.createElement('p');
 	setAdd('ip-info', myIframe);
 	myIframe.innerText = '正在获取IP地址…'
-	myIframe.setAttribute('style', 'height: 100%;');
+	myIframe.setAttribute('style', 'height: 100%; display: none;');
 
-	// 文心一言API https://v1.jinrishici.com/all.txt
+	// 一言
 	const h1hi = document.createElement('h1');
 	setAdd('hitokoto', h1hi);
 	h1hi.innerText = '订阅转换';
-	// h1hi.style = randomColor() + 'border-radius: 8px;';
-	const hitokotos = document.createElement('script');
-	hitokotos.setAttribute('src', 'https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto');
-	hitokotos.setAttribute('defer', '');
 
 	// 随机壁纸api，来着http://www.coolapk.com/u/3594531
 	const adaptive = document.createElement('img');
 	setAdd('adaptive', adaptive);
 	adaptive.setAttribute('src', '');
-	adaptive.setAttribute('alt', '随机壁纸');
-	adaptive.setAttribute('style', 'width: 100%; border-radius: 8px;');
+	adaptive.setAttribute('alt', '正在加载壁纸');
+	adaptive.setAttribute('style', 'width: 100%; border-radius: 8px; animation: scale 1s ease-in-out; display: none;');
 
 	// 悬浮按钮
 	const contact = document.createElement('a');
@@ -283,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	Container.appendChild(myIframe);
 	Container.appendChild(adaptive);
 	Container.appendChild(contact);
-	Container.appendChild(hitokotos);
+	// Container.appendChild(hitokotos);
 
 	// 添加到头部内容
 	header.appendChild(Container);
@@ -342,20 +383,28 @@ function clashBtn() {
 
 // 复制结果到剪贴板
 async function copyResult() {
-	const result = document.getElementById('resultArea').value;
-	if (!result) {
+	const result = document.getElementById('resultArea');
+	const textToCopy = result.value || result.textContent || result.innerText;
+
+	if (!textToCopy) {
 		showToast('请输入文本内容！');
 		return;
 	}
+
 	try {
-		// result.select();
-		// document.execCommand("copy");
-		await navigator.clipboard.writeText(result);
+		await navigator.clipboard.writeText(textToCopy);
 		showToast('复制成功！');
-	} catch (err) {
-		showToast('复制失败！');
+	} catch (error) {
+		result.select();
+		try {
+			document.execCommand("copy");
+			showToast('复制成功！');
+		} catch (error) {
+			showToast('复制失败！');
+		}
 	}
 }
+
 
 // 打开生成的链接
 function openGeneratedLink() {
@@ -369,9 +418,10 @@ function openGeneratedLink() {
 
 // 吐司弹窗
 function showToast(message) {
+	// alert(message);
 	const toast = document.createElement('div');
 	setAdd('toast', toast);
-	toast.textContent = message;
+	toast.innerHTML = message;
 	toast.style = `
 		position: fixed;
 		left: 50%;
@@ -411,16 +461,16 @@ function updateTime() {
 // 加载ip地址
 async function infoIP() {
 	const urls = [
-		'https://web.realsysadm.in?Z79362604080Q1',
-		'http://ip.bablosoft.com?Z79362604080Q1',
-		'http://api.ipify.org?Z79362604080Q1',
-		'http://fingerprints.bablosoft.com/ip?Z79362604080Q1',
-		'https://ipwho.is?Z79362604080Q1',
 		'http://eth0.me?Z79362604080Q1',
 		'http://90.151.171.106/ip.php?Z79362604080Q1',
 		'http://checkip.amazonaws.com?Z79362604080Q1',
 		'http://v4.ident.me?Z79362604080Q1',
 		'http://freeze.na4u.ru/ip.php?Z79362604080Q1',
+		'http://ip.bablosoft.com?Z79362604080Q1',
+		'http://fingerprints.bablosoft.com/ip?Z79362604080Q1',
+		'http://api.ipify.org?Z79362604080Q1',
+		'https://web.realsysadm.in?Z79362604080Q1',
+		'https://ipwho.is?Z79362604080Q1',
 		'http://ip-api.com/json/?lang=zh-CN',
 		'http://api.ipify.org/?format=json',
 		'https://ip.skk.moe/simple',
@@ -440,7 +490,9 @@ async function infoIP() {
 			clearTimeout(timeoutId);
 
 			const data = await response.text();
-			document.getElementById("ip-info").innerHTML = data;
+			const i = document.getElementById("ip-info")
+			i.innerHTML = data;
+			i.style.display = 'block';
 			break;
 		} catch (error) {
 			if (error.name === 'AbortError') {
@@ -468,6 +520,7 @@ function angles() {
 	return `${Math.floor(Math.random() * 360)}deg`;
 }
 
+// 随机壁纸
 async function adaptive() {
 	const urls = [
 		'https://api.rls.ovh/adaptive',
@@ -482,7 +535,6 @@ async function adaptive() {
 	// 加载随机壁纸
 	const img = document.getElementById('adaptive');
 
-	img.src = 'https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Flamingo.png';
 	// 加载逻辑
 	for (const url of urls) {
 		try {
@@ -495,6 +547,7 @@ async function adaptive() {
 			});
 			// 成功加载后显示图片
 			img.src = url;
+			img.style.display = 'block';
 			break;
 		} catch (error) {
 			console.error('请求失败: ', error);
@@ -502,13 +555,81 @@ async function adaptive() {
 	}
 }
 
-function updateGradient() {
-	document.documentElement.style.setProperty('--angle', angles());
+/**
+ * 生成随机颜色闭环序列
+ * @param {number} colorCount - 需要的颜色数量（至少2个）
+ * @param {number} [loop=1] - 基础循环次数
+ * @returns {string} 颜色序列字符串
+ */
+function generateRandomColors(colorCount = 3, loop = 1) {
+	// 生成随机颜色数组
+	const colors = Array.from({ length: colorCount }, () => getRandomColor());
+
+	// 创建闭环序列
+	const template = Array.from({ length: loop }, () => [...colors]).flat();
+	const closedLoop = [...template, colors[0]];
+	return closedLoop.join(', ');
 }
 
-// 页面加载完成
+function generateColorLoop(vars, loop = 2) {
+	// 创建基础循环模板
+	const template = Array.from({ length: loop }, () => [...vars]).flat();
+	// 添加闭环元素（首元素）实现无缝衔接
+	return [...template, vars[0]]
+		.map(v => `var(${v})`) // 添加var()包装
+		.join(', ');
+}
+
+// 切换渐变角度
+function updateGradient() {
+	document.documentElement.style.setProperty('--angle', angles());
+	// document.documentElement.style.setProperty('--color-body', generateRandomColors());
+}
+
+// 随机数生成
+function getRandomNumber(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// 一言API
+async function hitokoto() {
+	const urls = [
+		'https://v1.hitokoto.cn/?encode=text',
+		'https://v1.jinrishici.com/all.txt',
+		'https://xiaoapi.cn/API/yiyan.php'
+	]
+
+	for (const url of urls) {
+		try {
+			const controller = new AbortController();
+			const signal = controller.signal;
+			// 设置超时定时器
+			const timeoutId = setTimeout(() => {
+				controller.abort();
+			}, 5000);
+
+			const response = await fetch(url, { signal });
+			// 请求成功后清除定时器
+			clearTimeout(timeoutId);
+
+			const data = await response.text();
+			const i = document.getElementById("hitokoto")
+			i.innerHTML = data;
+			break;
+		} catch (error) {
+			if (error.name === 'AbortError') {
+				console.error('请求超时:', error.message);
+			} else {
+				console.error('请求失败: ', error);
+			}
+		}
+	}
+} hitokoto();
+
+// HTML加载完成后运行
 window.addEventListener("load", async () => {
-	adaptive();
 	// 点击页面切换新渐变
 	document.body.addEventListener('click', updateGradient);
+	// 获取壁纸
+	await adaptive();
 });

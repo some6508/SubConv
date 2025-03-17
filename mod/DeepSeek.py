@@ -4,6 +4,7 @@ import string
 import urllib.parse
 from datetime import datetime
 
+
 async def parse_info(headers):
 	"""增强版流量信息解析器，支持无限流量和RFC编码"""
 

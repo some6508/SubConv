@@ -167,7 +167,7 @@ async def 解析(buf):
 				trojan["port"] = url_trojan.port
 				# trojan["password"] = urlTrojan.password if urlTrojan.password is not None else ''
 				trojan["password"] = (url_trojan.password if getattr(url_trojan, 'password', None) is not None else
-									  url_trojan.netloc.split('@')[0] if getattr(url_trojan, 'netloc', None) is not None else '')
+				                      url_trojan.netloc.split('@')[0] if getattr(url_trojan, 'netloc', None) is not None else '')
 				trojan["udp"] = True
 				trojan["skip-cert-verify"] = bool(
 					distutils.util.strtobool(query.get("allowInsecure", "false")))
@@ -977,7 +977,7 @@ def proxies_info(info, args):
 	num = len(data.get('proxies'))
 	proxies = []
 	n = 0
-	proxies_num = {"name": f"节点共用{num}个", "type": "http", "server": "127.0.0.1", "port": 443}
+	proxies_num = {"name": f"节点共有{num}条", "type": "http", "server": "127.0.0.1", "port": 443}
 	proxies.append(proxies_num)
 	# data.get('proxies').insert(0, proxies_num)
 	if args.get('raw_data'):
