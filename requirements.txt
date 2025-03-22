@@ -5,3 +5,4 @@ uvicorn
 fastapi
 pydantic-settings-yaml
 aiofiles
+fake-useragent

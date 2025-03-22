@@ -59,6 +59,8 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 	}
 	for i in ["♻️ 自动选择", "☁️ 故障转移", "🔮 负载均衡", "🖲️ 手动选择"]:
 		proxySelect["proxies"].append(i)
+	if 节点:
+		proxySelect["proxies"].append('⛱️ 附加来源')
 	if not 列表:
 		for i in range(len(数据)):
 			proxySelect["proxies"].append("🏖 " + 数据[i]["订阅"])
@@ -131,6 +133,16 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 		]
 	})
 
+	if 节点:
+		proxyGroup.append({
+			"name": "⛱️ 附加来源",
+			"icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Static_1.png",
+			"type": "select",
+			"include-all-proxies": True,
+			"proxies": [
+				"DIRECT"
+			]
+		})
 	if not 列表:
 		for i in range(len(数据)):
 			proxyGroup.append({

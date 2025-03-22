@@ -126,9 +126,7 @@ async def provider(request: Request):
 				pattern = r';\s*filename=[^;]*'
 				headers['Content-Disposition'] = re.sub(pattern, '', headers['Content-Disposition'])
 		except Exception as e:
-			logging.error(f"请求链接: {url}")
-			logging.error(f"错误来源: {e.__class__.__name__}")
-			logging.error(f"错误信息: {str(e)}")
+			logging.error(f"错误来源: {e.__class__.__name__} 请求链接: {url}")
 			raise HTTPException(status_code=404, detail="出现请求错误")
 	return Response(content=result, headers=headers)
 
@@ -160,7 +158,7 @@ async def sub(request: Request):
 	url = re.split(r"[|\n]", url)
 	tmp = list(filter(lambda x: x != "", url))
 	if not tmp:
-		raise HTTPException(status_code=404, detail="！没有url链接")
+		raise HTTPException(status_code=404, detail="！没有参数")
 	url = []  # 链接
 	urls = []  # v2
 	for i in tmp:  # 判断文件
@@ -194,10 +192,8 @@ async def sub(request: Request):
 				else:
 					logging.warning(f"请求失败 {response.status_code}: {url[i]}")
 			except Exception as e:
-				logging.error(f"请求链接: {url[i]}")
-				logging.error(f"错误来源: {e.__class__.__name__}")
-				logging.error(f"错误信息: {str(e)}")
-		if data:
+				logging.error(f"错误来源: {e.__class__.__name__} 请求链接: {url[i]}")
+		if data or urls:
 			result = await SubPack.pack(数据=data, 节点=urls, 域名=base_url, 列表=all_list)
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
@@ -233,20 +229,31 @@ async def proxy(request: Request, url: str):
 
 
 @app.get("/日志")
+@app.post("/日志")
 async def 日志(request: Request):
-	headers = request.headers
-	log_file_path = Path(log_filename)
+	if request.method == "POST":
+		headers = request.headers
+		log_file_path = Path(log_filename)
 
-	try:
-		async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
+		try:
+			async with aiofiles.open(log_file_path, "r", encoding="utf-8") as f:
+				lines = await f.readlines()
+				# last_line = lines[-1000:]  # 显示后面1000行内容
+				reversed_lines = lines[::-1]  # 反转行顺序
+				return {"响应头": headers, "日志": reversed_lines}
+		except FileNotFoundError:
+			raise HTTPException(status_code=404, detail="没有日志文件")
+		except Exception as e:
+			raise HTTPException(status_code=500, detail=str(e))
+	else:
+		current_time = datetime.now().isoformat()
+		async with aiofiles.open("static/index.html", "r", encoding="utf-8") as f:
 			lines = await f.readlines()
-			# last_line = lines[-1000:]  # 显示后面1000行内容
-			reversed_lines = lines[::-1]  # 反转行顺序
-			return {"响应头": headers, "日志": reversed_lines}
-	except FileNotFoundError:
-		raise HTTPException(status_code=404, detail="没有日志文件")
-	except Exception as e:
-		raise HTTPException(status_code=500, detail=str(e))
+			html_content = "\n".join(lines)
+		# 在head标签内插入
+		script_tag = f'<script src="log-6038eb19.js?t={current_time}"></script>'
+		html_content = html_content.replace('</head>', script_tag + '</head>')
+		return HTMLResponse(content=html_content)
 
 
 # 如果没有相应请求
