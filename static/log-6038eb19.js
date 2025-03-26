@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function() {
 				<th>等级</th>
 				<th>IP</th>
 				<th>信息</th>
-				<th>𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭</th>
+				<th><button onclick="">‮</button></th>
 			</tr>
 		</thead>
 		<tbody id="tableBody"></tbody>
@@ -81,8 +81,9 @@ async function Table() {
 			const columns = item.split(' - ');  // 分割内容
 			const tr = document.createElement('tr');
 			columns.forEach((col, index) => {
-				const row = col.replace(/\s+/g, ' ').trim();
-				if (col.length > 23) {
+				const regex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}$/;
+				const row = col.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
+				if (col.length > 23 || (index === 0 && ! regex.test(row))) {
 					for (let i = index + 1; i < 5; i++) {
 						tr.appendChild(document.createElement('td'));
 					}
@@ -94,7 +95,7 @@ async function Table() {
 				}
 				if (index === 4) {
 					const textarea = document.createElement('textarea');
-					textarea.style.width = '100%';
+					textarea.style = 'width: 100%; resize: vertical;';
 					textarea.value = row;
 					td.appendChild(textarea);
 				} else {

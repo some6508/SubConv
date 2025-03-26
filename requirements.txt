@@ -1,8 +1,7 @@
-pydantic
-PyYAML
 httpx
+PyYAML
 uvicorn
 fastapi
-pydantic-settings-yaml
 aiofiles
 fake-useragent
+pydantic-settings-yaml

@@ -28,7 +28,7 @@ async def pack(数据: list, 节点: list, 域名: str, 列表: bool):
 						"path": f'./sub/{数据[i]["订阅"].split("@")[0]}.yaml',
 						"health-check": {
 							"enable": True,
-							"interval": 300,
+							"interval": 600,
 							"url": config.configInstance.TEST_URL
 						},
 						"override": {

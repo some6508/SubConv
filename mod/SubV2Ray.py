@@ -165,7 +165,6 @@ async def 解析(buf):
 				trojan["type"] = scheme
 				trojan["server"] = url_trojan.hostname
 				trojan["port"] = url_trojan.port
-				# trojan["password"] = urlTrojan.password if urlTrojan.password is not None else ''
 				trojan["password"] = (url_trojan.password if getattr(url_trojan, 'password', None) is not None else
 				                      url_trojan.netloc.split('@')[0] if getattr(url_trojan, 'netloc', None) is not None else '')
 				trojan["udp"] = True
@@ -490,6 +489,7 @@ async def 解析(buf):
 
 				if obfsParam != "":
 					ssr["obfs-param"] = obfsParam
+					continue
 
 				if protocolParam != "":
 					ssr["protocol-param"] = protocolParam
@@ -726,13 +726,11 @@ def proxies_info(info, args):
 	num = len(data.get('proxies'))
 	proxies = []
 	n = 0
-	proxies_num = {"name": f"节点共有{num}条", "type": "http", "server": "127.0.0.1", "port": 443}
+	proxies_num = {"name": f"节点共有{num}条", "type": "http", "server": "127.0.0.1", "port": 6508}
 	proxies.append(proxies_num)
-	# data.get('proxies').insert(0, proxies_num)
 	if args.get('raw_data'):
-		data_info = {"name": f"流量{args['remaining']}/{args['total']}|{args['expire']}", "type": "http", "server": "127.0.0.1", "port": 443}
+		data_info = {"name": f"已用{args['download']}/{args['total']}|{args['expire']}", "type": "http", "server": "127.0.0.1", "port": 6508}
 		proxies.append(data_info)
-	# data.get('proxies').insert(0, data_info)
 	for proxy in data.get('proxies', []):
 		n += 1
 		proxy['name'] = f"[{n}]{proxy.get('name')}"

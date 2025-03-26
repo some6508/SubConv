@@ -2,6 +2,7 @@
 # coding=utf-8
 import re
 import os
+import time
 import httpx
 import random
 import uvicorn
@@ -32,10 +33,10 @@ os.makedirs(log_temp_dir, exist_ok=True)
 logging.basicConfig(
 	level=logging.INFO,
 	format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-	handlers = [
+	handlers=[
 		RotatingFileHandler(
 			filename=log_filename,
-			maxBytes=1*1024*1024,
+			maxBytes=1 * 1024 * 1024,
 			backupCount=3
 		),
 		logging.StreamHandler()
@@ -55,9 +56,9 @@ if __name__ == "__main__":
 	# 脚本名
 	module_name = __name__.split(".")[0]
 
-	logging.info(f"开始运行: {run_name}")
-	logging.info(f"IP:端口: {args.host}:{args.port}")
-	logging.info(f"日志文件: {log_filename}")
+	logging.info(f"{module_name} - 开始运行: {run_name}")
+	logging.info(f"{module_name} - IP:端口: {args.host}:{args.port}")
+	logging.info(f"{module_name} - 日志文件: {log_filename}")
 	# 运行
 	uvicorn.run(module_name + ":app", host=args.host, port=args.port, workers=4, log_config=None)
 
@@ -66,17 +67,35 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 # 全局异常捕获中间件
 @app.middleware("http")
-async def catch_exceptions(request: Request, call_next):
+async def log_requests(request: Request, call_next):
+	start_time = time.time()
+
 	try:
-		return await call_next(request)
+		response = await call_next(request)
 	except Exception as e:
-		logging.error(f"出现异常: {str(e)}")
-		return JSONResponse(
-			status_code=500,
-			content={"error": "服务器内部错误"}
-		)
+		logging.error(f"请求错误: {str(e)}")
+		raise
+
+	# 计算处理时间
+	process_time = (time.time() - start_time) * 1000
+	process_time = round(process_time, 2)
+
+	# 记录请求完成
+	logging.info(
+		f"请求: {request.method} {request.url.path} "
+		f"响应码: {response.status_code} "
+		f"响应时间: {process_time}ms"
+	)
+	return response
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+	logging.error(f"未处理异常: {exc}")
+	raise
 
 
 @app.get("/")
@@ -104,10 +123,11 @@ async def robots():
 async def provider(request: Request):
 	headers = {'Content-Type': 'text/yaml;charset=utf-8'}
 	url = request.query_params.get("url")
-	url_ua = request.headers.get('User-Agent', 'clash-verge')
+	url_ua = request.headers.get('User-Agent', 'clash-verge/v1.6.6')
 	if "clash" not in url_ua:
-		url_ua = "clash-verge"
-	async with httpx.AsyncClient() as client:
+		url_ua = "clash-verge/v1.6.6"
+	timeout = httpx.Timeout(10.0, connect=30.0)  # 总超时10秒，连接超时30秒
+	async with httpx.AsyncClient(timeout=timeout) as client:
 		try:
 			resp = await client.get(url, headers={'User-Agent': url_ua}, follow_redirects=True)
 			if resp.status_code != 200:
@@ -118,8 +138,8 @@ async def provider(request: Request):
 			# 获取当前时间并格式化
 			current_time = datetime.now().isoformat()
 			result = f"# 由{run_name}一键生成\n# {current_time}\n{result}\n# {current_time}\n# 由{run_name}一键生成"
-			if 'subscription-userinfo' in resp.headers:  # 流量及日期信息
-				headers['subscription-userinfo'] = resp.headers['subscription-userinfo']
+			if 'Subscription-Userinfo' in resp.headers:  # 流量及日期信息
+				headers['Subscription-Userinfo'] = resp.headers['Subscription-Userinfo']
 			if 'Content-Disposition' in resp.headers:  # 订阅名
 				headers['Content-Disposition'] = resp.headers['Content-Disposition'].replace("attachment", "inline")
 				# 使用正则表达式去除 filename= 部分
@@ -148,10 +168,10 @@ async def sub(request: Request):
 	all_list = args.get("all", False)
 
 	# 获取请求UA
-	url_ua = request.headers.get('User-Agent', 'clash-verge')
+	url_ua = request.headers.get('User-Agent', 'clash-verge/v1.6.6')
 	if "clash" not in url_ua:  # 如果不是clash
-		url_ua = "clash-verge"
-	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': f"inline; filename*=utf-8''{run_name}"}
+		url_ua = "clash-verge/v1.6.6"
+	headers = {'Content-Type': 'text/yaml; charset=utf-8', 'Content-Disposition': f"inline; filename*=utf-8''{run_name}", 'Subscription-Userinfo': f'upload=0; download={int(time.time())}; total=1099511627776; expire={int(time.time())}'}
 
 	# 从args获取链接
 	url = args.get("url", "")
@@ -171,7 +191,8 @@ async def sub(request: Request):
 	# 如果有v2先解析
 	urls = await SubV2Ray.解析(urls)
 
-	async with httpx.AsyncClient() as client:
+	timeout = httpx.Timeout(10.0, connect=30.0)  # 总超时10秒，连接超时30秒
+	async with httpx.AsyncClient(timeout=timeout) as client:
 		data = []
 		for i in range(len(url)):
 			try:
@@ -206,11 +227,12 @@ async def sub(request: Request):
 
 @app.get("/proxy")
 async def proxy(request: Request, url: str):
-	url_ua = request.headers.get('User-Agent', 'clash-verge')
+	url_ua = request.headers.get('User-Agent', 'clash-verge/v1.6.6')
+	timeout = httpx.Timeout(10.0, connect=30.0)  # 总超时10秒，连接超时30秒
 
 	# file was big so use stream
 	async def stream():
-		async with httpx.AsyncClient() as client:
+		async with httpx.AsyncClient(timeout=timeout) as client:
 			async with client.stream("GET", url, headers={'User-Agent': url_ua}, follow_redirects=True) as resp:
 				yield resp.status_code
 				yield resp.headers

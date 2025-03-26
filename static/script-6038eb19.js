@@ -56,9 +56,10 @@ body {
 	height: 100%;
 	color: white;
 	text-align: center;
+	font-family: 'Arial', sans-serif;
 	background: linear-gradient(var(--angle), var(--color-body));
 	background-size: 400% 400%;
-	animation: gradient 5s ease infinite;
+	animation: gradient 7s ease infinite;
 	transition: all 1s ease;
 }
 @keyframes gradient {
@@ -143,12 +144,12 @@ button:hover {
 
 /*设置渐变色文字*/
 .footer, .toast, .contact-btn, .hitokoto, .ip-info, .adaptive, .popup {
-	font-weight: bold;  /* 字体加粗 */
-	background: -webkit-linear-gradient(-45deg, ${generateRandomColors(5,2)});
-	background: -moz-linear-gradient(-45deg, ${generateRandomColors(5,2)});
-	background: -linear-gradient(-45deg, ${generateRandomColors(5,2)});
-	background-size: 200% 200%;
-	background-clip: text;  /* 将背景裁剪为文字形状 */
+	background: 
+		-webkit-linear-gradient(-45deg, ${generateRandomColors(5,2)});
+		-moz-linear-gradient(-45deg, ${generateRandomColors(5,2)});
+		-linear-gradient(-45deg, ${generateRandomColors(5,2)});
+	background-size: 400% 400%;  /* 将背景图像放大，以便在动画中移动时产生平滑的过渡效果*/
+	background-clip: text;  /* 将背景限制在文字范围内 */
 	color: transparent;  /* 文字颜色透明（重要：让背景可见） */
 	animation: gradientAnimation 3s linear infinite;
 	-moz-animation: gradientAnimation 3s linear infinite;
@@ -158,7 +159,7 @@ button:hover {
 }
 @keyframes gradientAnimation {
 	0% { background-position: 100% 100%; }
-	100% { background-position: 0% 0%; }
+	100% { background-position: 100vw 100vh; }
 }
 
 /* 默认使用竖图 */
@@ -194,14 +195,14 @@ button:hover {
 }
 
 /* 旋转效果 */
-@keyframes rotate {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(360deg); }
+@keyframes rotateIn {
+	from { transform: rotate(-180deg) scale(0); }
+	to { transform: rotate(0) scale(1); }
 }
 /* 滑动效果 */
 @keyframes slideInFromLeft {
 	from { transform: translateX(100%); }
-	to { transform: trans; }
+	to { transform: translateX(0); }
 }
 /* 缩放效果 */
 @keyframes scale {
@@ -214,6 +215,11 @@ button:hover {
 	0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
 	40% { transform: translateY(-30px); }
 	60% { transform: translateY(-15px); }
+}
+/* 掉落 */
+@keyframes dropIn {
+	from { transform: translateY(-100vh); }
+	to { transform: translateY(0); }
 }
 `);
 
@@ -239,37 +245,37 @@ document.addEventListener("DOMContentLoaded", function() {
 	const generateBtn = document.createElement('button');
 	setAdd('generateBtn', generateBtn);
 	generateBtn.setAttribute('onclick', 'generateEncodedUrls()');
-	generateBtn.setAttribute('style', `background: ${getRandomColor()}`);
+	generateBtn.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	generateBtn.innerText = '生成链接';
 
 	const copyBtn = document.createElement('button');
 	setAdd('copyBtn', copyBtn);
 	copyBtn.setAttribute('onclick', 'copyResult()');
-	copyBtn.setAttribute('style', `background: ${getRandomColor()}`);
+	copyBtn.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	copyBtn.innerText = '复制链接';
 
 	const generateAndCopyBtn = document.createElement('button');
 	setAdd('generateAndCopyBtn', generateAndCopyBtn);
 	generateAndCopyBtn.setAttribute('onclick', 'generateAndCopy()');
-	generateAndCopyBtn.setAttribute('style', `background: ${getRandomColor()}`);
+	generateAndCopyBtn.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	generateAndCopyBtn.innerText = '生成并复制';
 
 	const UrlBtn = document.createElement('button');
 	setAdd('UrlBtn', UrlBtn);
 	UrlBtn.setAttribute('onclick', 'generateEncodedUrls(false)');
-	UrlBtn.setAttribute('style', `background: ${getRandomColor()}`);
+	UrlBtn.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	UrlBtn.innerText = '恢复链接';
 
 	const clashBtn = document.createElement('button');
 	setAdd('clashBtn', clashBtn);
 	clashBtn.setAttribute('onclick', 'clashBtn()');
-	clashBtn.setAttribute('style', `background: ${getRandomColor()}`);
+	clashBtn.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	clashBtn.innerText = '导入Clash';
 
 	const openGeneratedLink = document.createElement('button');
 	setAdd('openGeneratedLink', openGeneratedLink);
 	openGeneratedLink.setAttribute('onclick', 'openGeneratedLink()');
-	openGeneratedLink.setAttribute('style', `background: ${getRandomColor()}`);
+	openGeneratedLink.setAttribute('style', `background-image: linear-gradient(to right, ${getRandomColor()} 0%, ${getRandomColor()} 51%, ${getRandomColor()} 100%);`);
 	openGeneratedLink.innerText = '打开链接';
 
 	// 创建结果框
@@ -298,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function() {
 	setAdd('adaptive', adaptive);
 	adaptive.setAttribute('src', '');
 	adaptive.setAttribute('alt', '正在加载壁纸');
-	adaptive.setAttribute('style', 'width: 100%; border-radius: 8px; animation: scale 1s ease-in-out; display: none;');
+	adaptive.setAttribute('style', 'width: 100%; border-radius: 8px; animation: dropIn 1s forwards; display: none;');
 
 	// 悬浮按钮
 	const contact = document.createElement('a');
@@ -461,16 +467,16 @@ function updateTime() {
 // 加载ip地址
 async function infoIP() {
 	const urls = [
-		'http://eth0.me?Z79362604080Q1',
-		'http://90.151.171.106/ip.php?Z79362604080Q1',
-		'http://checkip.amazonaws.com?Z79362604080Q1',
-		'http://v4.ident.me?Z79362604080Q1',
-		'http://freeze.na4u.ru/ip.php?Z79362604080Q1',
-		'http://ip.bablosoft.com?Z79362604080Q1',
-		'http://fingerprints.bablosoft.com/ip?Z79362604080Q1',
-		'http://api.ipify.org?Z79362604080Q1',
-		'https://web.realsysadm.in?Z79362604080Q1',
-		'https://ipwho.is?Z79362604080Q1',
+		'http://eth0.me',
+		'http://90.151.171.106/ip.php',
+		'http://checkip.amazonaws.com',
+		'http://v4.ident.me',
+		'http://freeze.na4u.ru/ip.php',
+		'http://ip.bablosoft.com',
+		'http://fingerprints.bablosoft.com/ip',
+		'http://api.ipify.org',
+		'https://web.realsysadm.in',
+		'https://ipwho.is',
 		'http://ip-api.com/json/?lang=zh-CN',
 		'http://api.ipify.org/?format=json',
 		'https://ip.skk.moe/simple',

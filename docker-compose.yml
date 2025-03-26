@@ -5,6 +5,8 @@ services:
     container_name: subconv
     # 重启策略（自动恢复服务）
     restart: unless-stopped
+    # 网络模式
+    network_mode: host
     # 端口映射 主机端口:容器端口
     ports:
       - "8080:8080"

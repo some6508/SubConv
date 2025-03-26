@@ -4,15 +4,17 @@ HEAD:
   mode: rule # 运行模式 rule / global / direct ,Clash Meta 暂不支持 script
   log-level: info # 日志级别 silent / error / warning / info / debug
   allow-lan: true # 允许局域网连接 false / true
-  unified-delay: false # 统一延迟 更换延迟计算方式,去除握手等额外延迟
-  tcp-concurrent: false # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
+  bind-address: "*" # 绑定 IP 地址，仅作用于 allow-lan 为 true，'*'表示所有地址
+  unified-delay: true # 统一延迟 更换延迟计算方式,去除握手等额外延迟
+  tcp-concurrent: true # TCP 并发 如果域名解析结果对应多个IP,并发请求所有IP,选择握手最快的IP进行通讯
   external-controller: 0.0.0.0:9090 # API 监听地址
   external-ui: ./ui # 外部用户界面 路径
   external-ui-url: https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
   #  external-ui-url: https://mirror.ghproxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip
   #  secret: 'clash' # API 的访问密钥
+  #  external-doh-server: /dns-query # 在RESTful API端口上开启DOH服务器
   keep-alive-interval: 15 # 缓解移动设备耗电问题  # TCP Keep Alive 间隔,单位分钟 | 控制 Clash 发出 TCP Keep Alive 包的间隔,减少移动设备耗电问题的临时措施
-  global-client-fingerprint: chrome # 全局客户端指纹 # 随机指纹
+  global-client-fingerprint: random # 全局客户端指纹 # 随机指纹
   geodata-mode: false # GEOIP 数据模式,更改 geoip 使用文件,mmdb 或者 dat,可选,true 为 dat
   geo-auto-update: true # 自动更新 GEO 是否启用,可选 true/false
   geo-update-interval: 24 # 更新间隔,单位小时
@@ -25,15 +27,14 @@ HEAD:
   # 缓存
   profile:
     store-selected: false #储存 API 对策略组的选择，以供下次启动时使用
-    store-fake-ip: false #储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
+    store-fake-ip: true #储存 fakeip 映射表，域名再次发生连接时，使用原有映射地址
 
   # 代理模式
   tun:
     enable: true # 启用 tun
     stack: system # or 'gvisor'
     dns-hijack: # dns 劫持，将匹配到的连接导入内部 dns 模块
-      - any:53
-      - tcp://any:53
+      - 0.0.0.0:53
     auto-route: true # 自动设置全局路由，可以自动将全局流量路由进入 tun 网卡。
     auto-redirect: true # 自动配置 iptables/nftables 以重定向 TCP 连接，需要auto-route已启用
     auto-detect-interface: true # 自动选择流量出口接口，多出口网卡同时连接的设备建议手动指定出口网卡
@@ -46,10 +47,15 @@ HEAD:
     use-hosts: true # 是否回应配置中的 hosts，默认 true
     use-system-hosts: true # 是否查询系统 hosts，默认 true
     enhanced-mode: fake-ip  # mihomo 的 DNS 处理模式 redir-host / fake-ip
-    #    fake-ip-filter-mode: blacklist # 可选 blacklist/whitelist，默认blacklist，whitelist 即只有匹配成功才返回 fake-ip
-    fake-ip-range: 198.18.0.0/15  # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
-    # fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
-    # - geosite:cn
+    fake-ip-range: 198.18.0.1/16  # fakeip 下的 IP 段设置 198.18.0.1/16 28.0.0.1/8
+    fake-ip-filter: # fakeip 过滤,以下地址不会下发 fakeip 映射用于连接
+      - geosite:cn,private
+    default-nameserver: # 用于解析 nameserver，fallback 以及其他 DNS 服务器配置的，DNS 服务域名
+      - 114.114.114.114
+      - 8.8.8.8
+      - 1.12.12.12
+      - 223.5.5.5
+      - system
     nameserver-policy: # 使用指定的 DNS 服务器,优先于 nameserver/fallback 查询
       geosite:category-ads-all:
         - rcode://success
@@ -58,21 +64,27 @@ HEAD:
       geosite:cn,private:
         - https://doh.pub/dns-query
         - https://dns.alidns.com/dns-query
+        - https://t243345927.666.66a.net/dns-query
     nameserver: # 默认域名解析服务器,如不配置 fallback/proxy-server-nameserver , 则所有域名都由 nameserver 解析
-      - https://dns.cloudflare.com/dns-query
       - https://dns.google/dns-query
+      - https://cloudflare-dns.com/dns-query
       - https://dns.twnic.tw/dns-query
       - https://doh.dns.sb/dns-query
+      - https://doh.pub/dns-query
+      - https://dns.alidns.com/dns-query
+      - https://t243345927.666.66a.net/dns-query
+      - 114.114.114.114
+      - dhcp://en0
 
 
 # 测速链接
-TEST_URL: http://cp.cloudflare.com
+TEST_URL: https://cp.cloudflare.com/generate_204
 
 # 规则
 RULESET:
 
-  #- - 🛑 拦截访问
-  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising.list
+  - - 🛑 拦截访问
+    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AdvertisingLite/AdvertisingLite.list
 
   - - 🛑 拦截访问
     #  - https://adrules.top/adrules.list,http
@@ -90,14 +102,17 @@ RULESET:
   #- - 🎯 直连访问
   #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.list
 
-  #- - 🚀 节点选择
-  #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list
+  - - 🚀 节点选择
+    - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list
 
   - - 🚀 节点选择
     - '[]GEOSITE,GEOLOCATION-!CN'
 
   #- - 🎯 直连访问
   #  - https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaIPs/ChinaIPs.list
+
+  - - 🎯 直连访问
+    - '[]GEOSITE,PRIVATE'
 
   - - 🎯 直连访问
     #  - '[]OR,((GEOSITE,CN),(GEOIP,CN,no-resolve))'
